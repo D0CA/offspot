@@ -1,0 +1,4 @@
+# Ne pas versionner les fichiers d'environnement
+.env
+frontend/.env
+backend/.env

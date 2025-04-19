@@ -1,0 +1,66 @@
+/* LoginScreen.css */
+
+.login-screen {
+    width: 100vw;
+    height: 100vh;
+    background: linear-gradient(180deg, #0b0c28 0%, #1a213d 50%, #343b4d 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #fffaf0;
+    font-family: 'Poppins', sans-serif;  /* Poppins pour l'UI */
+    text-align: center;
+    padding: 20px;
+    overflow: hidden;
+  }
+  
+  .login-logo {
+    width: 100px;
+    height: 100px;
+    margin-bottom: 24px;
+    filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.4));
+    animation: float 3s ease-in-out infinite;
+  }
+  
+  .login-title {
+    font-size: 36px;
+    margin: 0;
+    color: #ffefd5;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.6);
+  }
+  
+  .login-subtitle {
+    margin-top: 8px;
+    margin-bottom: 24px;
+    font-size: 18px;
+    color: #dcdcdc;
+    opacity: 0.8;
+  }
+  
+  .login-button {
+    background: #9146ff;
+    color: white;
+    padding: 14px 28px;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 16px rgba(145, 70, 255, 0.4);
+    backdrop-filter: blur(4px);
+  }
+  
+  .login-button:hover {
+    background: #a565ff;
+    box-shadow: 0 0 24px rgba(255, 255, 255, 0.3), 0 0 6px rgba(145, 70, 255, 0.8);
+    transform: scale(1.05);
+  }
+  
+  /* Petit effet de flottement du logo */
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+    100% { transform: translateY(0px); }
+  }
+  

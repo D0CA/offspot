@@ -1,0 +1,194 @@
+/* src/ui/GameUI.css */
+
+.game-ui {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  padding: 8px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: white;
+  z-index: 10;
+  box-sizing: border-box;
+  font-family: 'Poppins', sans-serif;  /* Poppins pour l'UI */
+  pointer-events: none; /* laisse les interactions possibles ailleurs */
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  pointer-events: all;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 4px solid #ffffff;
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.5); /* adding shadow for a glowing effect */
+}
+
+.username-block {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.6); /* subtle shadow */
+}
+
+.username {
+  font-family: 'Cherry Bomb One', cursive;  /* Cherry Bomb One pour les titres */
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 4px;
+  color: #ffffff;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
+}
+
+.level {
+  font-size: 14px;
+  color: #ff4369;
+}
+
+.xp-bar-container {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: all;
+}
+
+.xp-bar {
+  background: #2c3e50;
+  height: 16px;
+  width: 450px;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+.xp-fill {
+  height: 100%;
+  background: linear-gradient(135deg, #f39c12, #e74c3c, #ff1493, #ff6adf); /* Warm sunset colors */
+  background-size: 800% 100%;
+  animation: rainbow 12s ease-in-out infinite;
+  transition: width 0.3s ease-in-out;
+}
+
+@keyframes rainbow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.xp-labels {
+  font-size: 14px;
+  color: #ecf0f1;
+  margin-top: 6px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  pointer-events: all;
+}
+
+.player-count {
+  font-size: 16px;
+  color: #e74c3c;
+  font-weight: bold;
+}
+
+.logout-button {
+  background: linear-gradient(45deg, #f39c12, #e74c3c, #ff6f61); /* dégradé tropical entre orange, jaune et rouge */
+  border: none;
+  color: white;
+  padding: 12px 16px;
+  font-size: 12px;
+  border-radius: 8px; /* bords arrondis */
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* effet de profondeur */
+}
+
+.logout-button:hover {
+  background: linear-gradient(45deg, #f1c40f, #ff7f50, #e74c3c); /* effets lumineux au survol */
+  transform: scale(1.05); /* léger agrandissement */
+  box-shadow: 0 6px 12px rgba(255, 99, 71, 0.5); /* lueur tropicale */
+}
+
+.logout-button:active {
+  transform: scale(1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* effet plus subtil au clic */
+}
+
+
+/* Flash effect when level up */
+.xp-bar.flash {
+  animation: flashGlow 1s ease-out;
+  box-shadow: 0 0 20px 8px rgba(255, 255, 255, 0.5);
+}
+
+@keyframes flashGlow {
+  0% {
+    box-shadow: 0 0 0px 0px rgba(255, 255, 255, 0);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 30px 15px rgba(255, 255, 255, 0.8);
+    transform: scale(1.1);
+  }
+  100% {
+    box-shadow: 0 0 0px 0px rgba(255, 255, 255, 0);
+    transform: scale(1);
+  }
+}
+
+.level-up-popup {
+  position: fixed;
+  top: 30%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 32px;
+  font-weight: bold;
+  color: #ffdc73;
+  text-shadow: 0 0 10px #ffcc00, 0 0 20px #ffaa00;
+  animation: levelPop 1.2s ease-out forwards;
+  z-index: 999;
+  pointer-events: none;
+}
+
+@keyframes levelPop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -60%) scale(0.9);
+  }
+  30% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+  60% {
+    transform: translate(-50%, -50%) scale(1);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -40%) scale(1);
+  }
+}
+
+.rainbow {
+  background: linear-gradient(135deg, #f39c12, #e74c3c, #3498db, #2ecc71, #8e44ad, #ff1493); /* Tropical gradient */
+  background-size: 800% 100%;
+  animation: rainbow 12s ease-in-out infinite;
+}
+

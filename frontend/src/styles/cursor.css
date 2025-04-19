@@ -1,0 +1,22 @@
+/* Curseur global personnalisé */
+html, body, * {
+    cursor: url('/cursors/pointer.png') 3 6, auto;
+  }
+  
+  /* Curseur clic pour les éléments interactifs */
+  button:hover,
+  button:active,
+  a:hover {
+    cursor: url('/cursors/click.png') 2 13, auto;
+  }
+
+  body.dragging * {
+    cursor: url('/cursors/grab.png') 16 16, auto !important;
+  }
+  canvas {
+    cursor: inherit !important;
+  }
+  
+  
+
+  
