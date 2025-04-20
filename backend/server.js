@@ -210,6 +210,10 @@ twitchClient.on('message', async (channel, tags, message, self) => {
   const key = username.toLowerCase()
   const userID = tags['user-id']
 
+  if (!players[key]) {
+    return
+  }
+
   if (!messageHistory[userID]) messageHistory[userID] = []
   const history = messageHistory[userID]
   const isOriginal = !history.includes(message)
