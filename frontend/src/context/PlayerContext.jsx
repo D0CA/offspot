@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useRef, useEffect } from 'react'
-import { useSocket } from '../hooks/useSocket'
 import { computeLevelFromXP } from '../utils/leveling'
 import { io } from 'socket.io-client'
 import { mapConfig } from '../constants/mapConfig'
@@ -16,6 +15,9 @@ export function PlayerProvider({ children, user }) {
   const [currentXP, setCurrentXP] = useState(0)
   const [xpRequired, setXPRequired] = useState(120)
 
+  // 🔁 pour forcer un re-render React sur update de niveau
+  const [playerVersion, setPlayerVersion] = useState(0)
+
   const updateMyXP = (totalXP) => {
     const { level, currentLevelXP, xpRequired } = computeLevelFromXP(totalXP)
 
@@ -26,13 +28,17 @@ export function PlayerProvider({ children, user }) {
 
     const key = user.username.toLowerCase()
     const player = playersRef.current[key]
-    
+
     if (player) {
       player.level = level
       if (player.levelText) {
         player.levelText.text = `Niv ${level}`
       }
-    }}    
+    }
+
+    // 🔄 déclencher un re-render de l'UI React
+    setPlayerVersion((v) => v + 1)
+  }
 
   useEffect(() => {
     socket.current = io('https://offspot-4nz1.onrender.com')
@@ -89,6 +95,7 @@ export function PlayerProvider({ children, user }) {
         setXPRequired,
         updateMyXP,
         logout,
+        playerVersion, // 👈 facultatif, si tu veux observer les updates
         isMe: (id) => id === socketId,
         getMyKey: () => user.username.toLowerCase()
       }}
