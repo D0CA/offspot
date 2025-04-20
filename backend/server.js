@@ -228,7 +228,17 @@ twitchClient.on('message', async (channel, tags, message, self) => {
 
   const username = tags['display-name'];
   const userID = tags['user-id'];
-  const key = username.toLowerCase()  
+  const key = username.toLowerCase();
+
+  // 🚫 Ne pas traiter les messages des gens non connectés au jeu
+  if (!players[key]) {
+    console.log(`[⛔] Message ignoré de ${key} (non connecté)`);
+    return;
+  }
+
+  // ✅ OK, joueur connecté :
+  console.log(`[💬] ${username} (connecté) : ${message}`);
+
   if (!messageHistory[userID]) messageHistory[userID] = [];
 
   const history = messageHistory[userID];
@@ -237,7 +247,7 @@ twitchClient.on('message', async (channel, tags, message, self) => {
   messageHistory[userID].push(message);
   if (messageHistory[userID].length > 2) messageHistory[userID].shift();
 
-  const userRef = doc(db, 'players', username.toLowerCase())
+  const userRef = doc(db, 'players', key);
   let xpGained = 0;
   let totalXP = 0;
 
@@ -273,11 +283,10 @@ twitchClient.on('message', async (channel, tags, message, self) => {
 
   const currentLevelXP = remaining;
 
-  if (players[key]) {
-    players[key].xp = totalXP
-    players[key].level = level
-    players[key].requiredXP = xpForCurrentLevel
-  }  
+  // 🔁 Mise à jour en mémoire
+  players[key].xp = totalXP;
+  players[key].level = level;
+  players[key].requiredXP = xpForCurrentLevel;
 
   io.emit('chat-message', {
     username,
@@ -287,7 +296,7 @@ twitchClient.on('message', async (channel, tags, message, self) => {
     currentXP: currentLevelXP,
     requiredXP: xpForCurrentLevel,
     totalXP
-  })
-})
+  });
+});
 
 server.listen(4000, () => console.log("Server running"));
