@@ -1,12 +1,15 @@
 import React from 'react'
 import './LoginScreen.css'
+import { getBackendURL } from '../utils/env'
 
 const twitchClientId = import.meta.env.VITE_TWITCH_CLIENT_ID
-const backendURL = import.meta.env.VITE_BACKEND_URL
+const backendURL = getBackendURL()
 
-const twitchAuthUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${twitchClientId}&redirect_uri=${backendURL}/auth/twitch/callback&response_type=code&scope=user:read:email`
+const twitchAuthUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${twitchClientId}&redirect_uri=${encodeURIComponent(
+  `${backendURL}/auth/twitch/callback`
+)}&response_type=code&scope=user:read:email&force_verify=true`
 
-console.log('backendURL (env):', backendURL)
+console.log('backendURL (detected):', backendURL)
 
 export default function LoginScreen() {
   return (

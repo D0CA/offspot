@@ -129,7 +129,7 @@ function renderBubble({ player, message, app, texture }) {
   bubble.addChild(bubbleSprite)
   bubble.addChild(textContainer)
 
-  bubble.y = -180
+  bubble.y = -300
   bubble.alpha = 0
   bubble.scale.set(0.85 * BUBBLE_SCALE)
   bubble.zIndex = 999
