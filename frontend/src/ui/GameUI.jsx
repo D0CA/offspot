@@ -50,10 +50,14 @@ export default function GameUI({
 
   useEffect(() => {
     if (xpFillRef.current) {
-      xpFillRef.current.style.transition = 'width 0.5s ease'
+      xpFillRef.current.style.transition = 'width 0.5s ease, transform 0.5s ease'
       xpFillRef.current.style.width = `${(currentLevelXP / xpRequiredFinal) * 100}%`
+  
+      xpFillRef.current.classList.remove('xp-glow')
+      void xpFillRef.current.offsetWidth // reflow trick
+      xpFillRef.current.classList.add('xp-glow')
     }
-  }, [currentLevelXP, xpRequiredFinal, playerVersion]) // ✅ on déclenche aussi sur update forcée
+  }, [currentLevelXP, xpRequiredFinal, playerVersion])  
 
   return (
     <div className="game-ui">

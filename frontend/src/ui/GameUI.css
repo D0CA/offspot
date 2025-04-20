@@ -74,16 +74,36 @@
 
 .xp-fill {
   height: 100%;
-  background: linear-gradient(135deg, #f39c12, #e74c3c, #ff1493, #ff6adf); /* Warm sunset colors */
+  background: linear-gradient(135deg, #f39c12, #e74c3c, #ff1493, #ff6adf);
   background-size: 800% 100%;
   animation: rainbow 12s ease-in-out infinite;
-  transition: width 0.3s ease-in-out;
+  transition: width 0.5s ease, transform 0.5s ease;
+  will-change: width, transform;
 }
 
 @keyframes rainbow {
   0% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
+}
+
+.xp-glow {
+  animation: xpGlowPulse 0.5s ease-out;
+}
+
+@keyframes xpGlowPulse {
+  0% {
+    box-shadow: 0 0 0px rgba(255, 255, 255, 0);
+    transform: scaleX(1);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(255, 255, 255, 0.7);
+    transform: scaleX(1.03);
+  }
+  100% {
+    box-shadow: 0 0 0px rgba(255, 255, 255, 0);
+    transform: scaleX(1);
+  }
 }
 
 .xp-labels {
