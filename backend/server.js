@@ -62,6 +62,7 @@ app.get('/auth/twitch/callback', async (req, res) => {
 let messageHistory = {};
 let players = {}
 let socketIdToUsername = {}
+let usernameToSocketId = {}
 
 let videoQueue = []
 let currentVideo = null
@@ -94,6 +95,7 @@ io.on('connection', (socket) => {
 socket.on('new-player', async (data) => {
   const { username, avatar, id } = data
   const key = username.toLowerCase()
+  usernameToSocketId[key] = socket.id
 
   if (!id || !username) {
     console.warn('⛔ ID ou pseudo manquant, connexion ignorée.')
@@ -200,7 +202,8 @@ socket.on('new-player', async (data) => {
   socket.on('disconnect', () => {
     const usernameKey = socketIdToUsername[socket.id]
     delete players[usernameKey]
-    delete socketIdToUsername[socket.id]    
+    delete socketIdToUsername[socket.id]  
+    delete usernameToSocketId[socketIdToUsername[socket.id]]  
     io.emit('update-players', players)
   })
 
@@ -282,6 +285,7 @@ twitchClient.on('message', async (channel, tags, message, self) => {
   }
 
   const currentLevelXP = remaining;
+  const socketId = usernameToSocketId[key]
 
   // 🔁 Mise à jour en mémoire
   players[key].xp = totalXP;
@@ -289,7 +293,7 @@ twitchClient.on('message', async (channel, tags, message, self) => {
   players[key].requiredXP = xpForCurrentLevel;
 
   io.emit('chat-message', {
-    socketId: socket.id,
+    socketId,
     username,
     message,
     xpGained,
@@ -297,7 +301,7 @@ twitchClient.on('message', async (channel, tags, message, self) => {
     currentXP: currentLevelXP,
     requiredXP: xpForCurrentLevel,
     totalXP
-  });
+  });  
 });
 
 server.listen(4000, () => console.log("Server running"));
