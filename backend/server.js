@@ -95,13 +95,11 @@ io.on('connection', (socket) => {
 socket.on('new-player', async (data) => {
   const { username, avatar, id } = data
   const key = username.toLowerCase()
-  
+  usernameToSocketId[key] = socket.id
   if (key !== id.toLowerCase()) {
     console.warn(`[⛔] Incohérence pseudo/ID : ${id} veut se connecter en tant que ${key}`);
     return;
-  }
-  
-  usernameToSocketId[key] = socket.id
+  }  
 
   if (!id || !username) {
     console.warn('⛔ ID ou pseudo manquant, connexion ignorée.')
