@@ -9,7 +9,13 @@ export default function GameUI({
   playerCount,
   onLogout
 }) {
-  const { myXP, myLevel, currentXP, xpRequired } = usePlayer()
+  const {
+    myXP,
+    myLevel,
+    currentXP,
+    xpRequired,
+    playerVersion // ✅ utilisé pour forcer le re-render visuel
+  } = usePlayer()
 
   const level = myLevel
   const currentLevelXP = currentXP
@@ -23,13 +29,13 @@ export default function GameUI({
     if (previousLevel !== null && level > previousLevel) {
       if (xpBarRef.current) {
         xpBarRef.current.classList.remove('flash')
-        void xpBarRef.current.offsetWidth // force reflow
+        void xpBarRef.current.offsetWidth
         xpBarRef.current.classList.add('flash')
       }
 
       if (xpFillRef.current) {
         xpFillRef.current.classList.remove('rainbow')
-        void xpFillRef.current.offsetWidth // force reflow
+        void xpFillRef.current.offsetWidth
         xpFillRef.current.classList.add('rainbow')
       }
 
@@ -47,7 +53,7 @@ export default function GameUI({
       xpFillRef.current.style.transition = 'width 0.5s ease'
       xpFillRef.current.style.width = `${(currentLevelXP / xpRequiredFinal) * 100}%`
     }
-  }, [currentLevelXP, xpRequiredFinal])
+  }, [currentLevelXP, xpRequiredFinal, playerVersion]) // ✅ on déclenche aussi sur update forcée
 
   return (
     <div className="game-ui">
