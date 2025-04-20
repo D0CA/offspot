@@ -71,7 +71,7 @@ export function setupSocketHandlers({
 
     displayChatBubble({ player, message, app })  
 
-    if (username === user?.username) {
+    if (username.toLowerCase() === user?.username?.toLowerCase()) {
       updateMyXP(totalXP)
     
       // 🔁 aussi mettre à jour ton propre affichage sous le perso
