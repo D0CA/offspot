@@ -6,6 +6,8 @@ const backendURL = import.meta.env.VITE_BACKEND_URL
 
 const twitchAuthUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${twitchClientId}&redirect_uri=${backendURL}/auth/twitch/callback&response_type=code&scope=user:read:email`
 
+console.log('backendURL (env):', backendURL)
+
 export default function LoginScreen() {
   return (
     <div className="login-screen">
