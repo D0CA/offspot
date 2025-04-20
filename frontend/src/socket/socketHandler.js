@@ -37,11 +37,12 @@ export function setupSocketHandlers({
     }
 
     const liveLevels = {}
-    const myId = user.id
-
-    if (myId && playersRef.current[myId]) {
-      liveLevels[myId] = playersRef.current[myId].level
+    const myKey = user.username.toLowerCase()
+    
+    if (myKey && playersRef.current[myKey]) {
+      liveLevels[myKey] = playersRef.current[myKey].level
     }
+    
 
     const bgSprite = app.stage.children.find(c => c instanceof PIXI.Sprite && c.texture?.baseTexture?.resource?.url === mapConfig.backgroundUrl)
     const scale = (bgSprite?.scale?.x > 0) ? bgSprite.scale.x : 1
@@ -72,12 +73,18 @@ export function setupSocketHandlers({
 
     if (username === user?.username) {
       updateMyXP(totalXP)
-    } else {
-      // 🔁 mise à jour du levelText pour les autres joueurs
+    
+      // 🔁 aussi mettre à jour ton propre affichage sous le perso
       if (player.levelText) {
         player.level = level
         player.levelText.text = `Niv ${level}`
       }
-    }     
+    } else {
+      // 🔁 mise à jour pour les autres
+      if (player.levelText) {
+        player.level = level
+        player.levelText.text = `Niv ${level}`
+      }
+    }         
   })
 }
