@@ -52,7 +52,7 @@ app.get('/auth/twitch/callback', async (req, res) => {
 
     const user = userRes.data.data[0];
 
-    res.redirect(`https://offspot.netlify.app/auth-success?username=${user.display_name}&avatar=${encodeURIComponent(user.profile_image_url)}&id=${user.id}`);
+    res.redirect(`${process.env.FRONTEND_URL}/auth-success?username=${user.display_name}&avatar=${encodeURIComponent(user.profile_image_url)}&id=${user.id}`);
   } catch (err) {
     console.error(err);
     res.status(500).send('Erreur lors de l’authentification Twitch');
