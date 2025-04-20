@@ -1,22 +1,40 @@
-/* Curseur global personnalisé */
-html, body, * {
-    cursor: url('/cursors/pointer.png') 3 6, auto;
-  }
-  
-  /* Curseur clic pour les éléments interactifs */
-  button:hover,
-  button:active,
-  a:hover {
-    cursor: url('/cursors/click.png') 2 13, auto;
-  }
+/* Applique le curseur custom partout, y compris aux pseudo-éléments */
+*,
+*:before,
+*:after,
+html,
+body {
+  cursor: url('/cursors/pointer.png') 3 6, auto;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-  body.dragging * {
-    cursor: url('/cursors/grab.png') 16 16, auto !important;
-  }
-  canvas {
-    cursor: inherit !important;
-  }
-  
-  
+/* Curseur appliqué sur le canvas Pixi (injecté dynamiquement) */
+canvas.custom-cursor {
+  cursor: url('/cursors/pointer.png') 3 6, auto !important;
+}
 
-  
+/* Curseur click, si ajouté dynamiquement (ex: on click) */
+.cursor-click {
+  cursor: url('/cursors/click.png') 6 4, auto !important;
+}
+
+/* Curseur grab, par exemple pendant un drag */
+.cursor-grab {
+  cursor: url('/cursors/grab.png') 4 4, auto !important;
+}
+
+/* Curseur grab appliqué à tout le canvas en mode drag */
+canvas.custom-cursor.drag-mode {
+  cursor: url('/cursors/grab.png') 4 4, auto !important;
+}
+
+/* Forcer le body à occuper tout l’espace sans débordements */
+html,
+body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}

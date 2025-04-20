@@ -59,6 +59,8 @@ export default function GameScene() {
     pixiContainer.current.innerHTML = ''
     pixiContainer.current.appendChild(app.current.view)
 
+    app.current.view.classList.add('custom-cursor')
+
     stageContainer.current = new PIXI.Container()
     stageContainer.current.sortableChildren = true
     app.current.stage.addChild(stageContainer.current)

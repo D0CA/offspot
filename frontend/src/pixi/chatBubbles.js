@@ -129,7 +129,7 @@ function renderBubble({ player, message, app, texture }) {
   bubble.addChild(bubbleSprite)
   bubble.addChild(textContainer)
 
-  bubble.y = -140
+  bubble.y = -180
   bubble.alpha = 0
   bubble.scale.set(0.85 * BUBBLE_SCALE)
   bubble.zIndex = 999
@@ -139,17 +139,16 @@ function renderBubble({ player, message, app, texture }) {
   player.chatBubble = bubble
 
   let t = 0
-  const bounceIn = delta => {
+  const appear = delta => {
     t += delta
-    bubble.alpha = Math.min(1, bubble.alpha + 0.1)
-    bubble.scale.x = 1 + 0.05 * Math.sin(t * 0.3)
-    bubble.scale.y = 1 + 0.05 * Math.sin(t * 0.3)
-    if (t > 10) {
-      bubble.scale.set(1 * BUBBLE_SCALE)
-      app.ticker.remove(bounceIn)
+    bubble.alpha = Math.min(1, bubble.alpha + 0.05)
+    bubble.scale.set(Math.min(1 * BUBBLE_SCALE, bubble.scale.x + 0.05))
+    if (bubble.alpha >= 1 && bubble.scale.x >= BUBBLE_SCALE) {
+      app.ticker.remove(appear)
     }
   }
-  app.ticker.add(bounceIn)
+  app.ticker.add(appear)
+  
 
   const duration = Math.min(6000, 2000 + message.length * 50)
   setTimeout(() => {
