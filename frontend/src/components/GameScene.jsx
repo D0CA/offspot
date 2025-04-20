@@ -27,7 +27,7 @@ export default function GameScene() {
     myLevel,
     currentXP,
     xpRequired,
-    setMyXP,
+    updateMyXP,
     setMyLevel,
     setCurrentXP,
     setXPRequired,
@@ -269,7 +269,7 @@ export default function GameScene() {
       stage: cameraContainer.current,
       user,
       setPlayerCount,
-      updateMyXP: setMyXP,
+      updateMyXP,
     })
   }, [socket.current, app.current, cameraContainer.current, user])
 
