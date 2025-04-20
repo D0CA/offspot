@@ -50,11 +50,9 @@ export default function VideoScreen({ cameraRef }) {
     if (!s) return
 
     const handlePlay = (data) => {
-      console.log('[📡 play-video]', data)
       const raw = data?.url
       const startTime = data?.startTime
       const rawUrl = typeof raw === 'string' ? raw : raw?.url
-      console.log('[🧪 URL parsing]', { raw, rawUrl, startTime })
       if (!rawUrl || !startTime) return
 
       try {
@@ -70,7 +68,6 @@ export default function VideoScreen({ cameraRef }) {
         setVideoUrl(rawUrl)
         setStartTime(startTime)
         setEmbedSrc(embedUrl)
-        console.log('[✅ embed URL built]', embedUrl)
       } catch (err) {
         console.error('[❌] Erreur lors du parsing de l\'URL:', rawUrl, err)
       }
@@ -97,7 +94,6 @@ export default function VideoScreen({ cameraRef }) {
     if (!embedSrc || !iframeRef.current) return
 
     const tryInitYT = () => {
-      console.log('[🎬 tryInitYT] YouTube Player init...')
       if (window.YT && window.YT.Player) {
         const ytPlayer = new window.YT.Player(iframeRef.current, {
           events: {
@@ -108,7 +104,6 @@ export default function VideoScreen({ cameraRef }) {
               setPlayer(event.target)
             },
             onStateChange: (e) => {
-              console.log('[⏯ YouTube state]', e.data)
               if (e.data === window.YT.PlayerState.ENDED) {
                 socket.current?.emit('skip-video')
               }
@@ -122,7 +117,6 @@ export default function VideoScreen({ cameraRef }) {
                     if (e.target.getPlayerState() === window.YT.PlayerState.PLAYING) {
                       e.target.setVolume(volume)
                       e.target.unMute()
-                      console.log(`[🔊] Volume appliqué : ${volume}`)
                     }
                   }, 3000)
                 }
