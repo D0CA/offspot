@@ -89,17 +89,14 @@ function playNextVideo() {
 }
 
 io.on('connection', (socket) => {
-  console.log('✅ Connecté:', socket.id)
 
 // Quand un nouveau joueur se connecte
 socket.on('new-player', async (data) => {
   const { username, avatar, id } = data
   const key = username.toLowerCase()
   usernameToSocketId[key] = socket.id
-  if (key !== id.toLowerCase()) {
-    console.warn(`[⛔] Incohérence pseudo/ID : ${id} veut se connecter en tant que ${key}`);
-    return;
-  }  
+
+  console.log(`[✅] Connexion de ${username} (${id})`);
 
   if (!id || !username) {
     console.warn('⛔ ID ou pseudo manquant, connexion ignorée.')
@@ -115,10 +112,11 @@ socket.on('new-player', async (data) => {
   } else {
     await setDoc(userRef, {
       xp: 0,
-      username,
-      id,
-      avatar,
-    })
+      level: 1,
+      requiredXP: 100,
+      username: key, // 🔐 doit être exactement égal au nom du doc
+      avatar
+    })    
   }
 
   let level = 1
