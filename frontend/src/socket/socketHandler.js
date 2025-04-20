@@ -71,14 +71,13 @@ export function setupSocketHandlers({
 
     displayChatBubble({ player, message, app })  
 
-    if (socketId === socket.id) {
+    if (player.username.toLowerCase() === user.username.toLowerCase()) {
       updateMyXP(totalXP)
+    }
     
-      // 🔁 aussi mettre à jour ton propre affichage sous le perso
-      if (player.levelText) {
-        player.level = level
-        player.levelText.text = `Niv ${level}`
-      }
+    if (player.levelText) {
+      player.level = level
+      player.levelText.text = `Niv ${level}`    
     } else {
       // 🔁 mise à jour pour les autres
       if (player.levelText) {

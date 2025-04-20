@@ -268,7 +268,8 @@ twitchClient.on('message', async (channel, tags, message, self) => {
     level,
     currentXP: currentLevelXP,
     requiredXP: xpForCurrentLevel,
-    totalXP
+    totalXP,
+    socketId: usernameToSocketId[key] || null
   })
 })
 
