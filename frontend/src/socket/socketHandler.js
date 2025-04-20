@@ -61,7 +61,7 @@ export function setupSocketHandlers({
     updateMyXP(data.xp || 0)
   })
 
-  socket.on('chat-message', ({ username, message, xpGained, level, totalXP, currentXP, requiredXP }) => {
+  socket.on('chat-message', ({ socketId, username, message, xpGained, level, totalXP, currentXP, requiredXP }) => {
     const player = Object.values(playersRef.current).find(p => p.username?.toLowerCase() === username?.toLowerCase())
 
     if (!player) {
@@ -71,7 +71,7 @@ export function setupSocketHandlers({
 
     displayChatBubble({ player, message, app })  
 
-    if (username.toLowerCase() === user?.username?.toLowerCase()) {
+    if (socketId === socket.id) {
       updateMyXP(totalXP)
     
       // 🔁 aussi mettre à jour ton propre affichage sous le perso
