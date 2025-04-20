@@ -34,7 +34,7 @@ export function PlayerProvider({ children, user }) {
   }
 
   useEffect(() => {
-    socket.current = io('http://localhost:4000')
+    socket.current = io('https://offspot-4nz1.onrender.com')
 
     socket.current.on('connect', () => {
       setSocketId(socket.current.id)
