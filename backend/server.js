@@ -52,7 +52,7 @@ app.get('/auth/twitch/callback', async (req, res) => {
 
     const user = userRes.data.data[0];
 
-    res.redirect(`http://localhost:5173/auth-success?username=${user.display_name}&avatar=${encodeURIComponent(user.profile_image_url)}&id=${user.id}`);
+    res.redirect(`https://offspot.netlify.app/auth-success?username=${user.display_name}&avatar=${encodeURIComponent(user.profile_image_url)}&id=${user.id}`);
   } catch (err) {
     console.error(err);
     res.status(500).send('Erreur lors de l’authentification Twitch');
@@ -282,4 +282,4 @@ twitchClient.on('message', async (channel, tags, message, self) => {
   })
 })
 
-server.listen(4000, () => console.log("Server running on http://localhost:4000"));
+server.listen(4000, () => console.log("Server running"));
