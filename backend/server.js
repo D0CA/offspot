@@ -61,7 +61,7 @@ app.get('/auth/twitch/callback', async (req, res) => {
 
 let messageHistory = {};
 let players = {}
-let socketIdToTwitchId = {} // 🆕
+let socketIdToUsername = {}
 
 let videoQueue = []
 let currentVideo = null
@@ -90,58 +90,65 @@ function playNextVideo() {
 io.on('connection', (socket) => {
   console.log('✅ Connecté:', socket.id)
 
-  socket.on('new-player', async (data) => {
-    const { username, avatar, id } = data
+// Quand un nouveau joueur se connecte
+socket.on('new-player', async (data) => {
+  const { username, avatar, id } = data
+  const key = username.toLowerCase()
 
-    if (!id) {
-      console.warn('⛔ Aucun ID reçu pour le joueur, connexion ignorée.')
-      return
-    }
+  if (!id || !username) {
+    console.warn('⛔ ID ou pseudo manquant, connexion ignorée.')
+    return
+  }
 
-    const userRef = doc(db, 'players', id)
-    const docSnap = await getDoc(userRef)
+  const userRef = doc(db, 'players', key)
+  const docSnap = await getDoc(userRef)
 
-    let xp = 0
-    if (docSnap.exists()) {
-      xp = docSnap.data().xp || 0
-    } else {
-      await setDoc(userRef, { xp: 0 })
-    }
-
-    let level = 1
-    let requiredXP = 100
-    let remainingXP = xp
-
-    while (remainingXP >= requiredXP) {
-      remainingXP -= requiredXP
-      level++
-      requiredXP = 100 + (level - 1) * 20
-    }
-
-    const playerData = {
-      x: mapConfig.spawn.x,
-      y: mapConfig.spawn.y,
-      avatar,
+  let xp = 0
+  if (docSnap.exists()) {
+    xp = docSnap.data().xp || 0
+  } else {
+    await setDoc(userRef, {
+      xp: 0,
       username,
-      id: id,
-      xp,
-      level,
-      requiredXP
-    }
+      id,
+      avatar,
+    })
+  }
 
-    players[id] = playerData // où `id` est l'ID Twitch
-    socketIdToTwitchId[socket.id] = id
+  let level = 1
+  let requiredXP = 100
+  let remainingXP = xp
 
-    socket.emit('player-data', playerData)
+  while (remainingXP >= requiredXP) {
+    remainingXP -= requiredXP
+    level++
+    requiredXP = 100 + (level - 1) * 20
+  }
 
-    setTimeout(() => {
-      socket.emit('update-players', players)
-      socket.broadcast.emit('update-players', players)
-    }, 100)
-  })
+  const playerData = {
+    x: mapConfig.spawn.x,
+    y: mapConfig.spawn.y,
+    avatar,
+    username,
+    id,
+    xp,
+    level,
+    requiredXP
+  }
+
+  players[key] = playerData
+  socketIdToUsername[socket.id] = key
+
+  socket.emit('player-data', playerData)
+
+  setTimeout(() => {
+    socket.emit('update-players', players)
+    socket.broadcast.emit('update-players', players)
+  }, 100)
+})
 
   socket.on('move', ({ x, y }) => {
-    const twitchId = socketIdToTwitchId[socket.id]
+    const twitchId = socketIdToUsername[socket.id]
     if (players[twitchId]) {
       players[twitchId].x = x
       players[twitchId].y = y
@@ -191,16 +198,16 @@ io.on('connection', (socket) => {
   })  
 
   socket.on('disconnect', () => {
-    const twitchId = socketIdToTwitchId[socket.id]
-    delete players[twitchId]
-    delete socketIdToTwitchId[socket.id]
+    const usernameKey = socketIdToUsername[socket.id]
+    delete players[usernameKey]
+    delete socketIdToUsername[socket.id]    
     io.emit('update-players', players)
   })
 
   socket.on('remove-player', () => {
-    const twitchId = socketIdToTwitchId[socket.id]
-    delete players[twitchId]
-    delete socketIdToTwitchId[socket.id]
+    const usernameKey = socketIdToUsername[socket.id]
+    delete players[usernameKey]
+    delete socketIdToUsername[socket.id]    
     io.emit('update-players', players)
   })
 })
@@ -221,6 +228,7 @@ twitchClient.on('message', async (channel, tags, message, self) => {
 
   const username = tags['display-name'];
   const userID = tags['user-id'];
+  const key = username.toLowerCase()  
   if (!messageHistory[userID]) messageHistory[userID] = [];
 
   const history = messageHistory[userID];
@@ -229,7 +237,7 @@ twitchClient.on('message', async (channel, tags, message, self) => {
   messageHistory[userID].push(message);
   if (messageHistory[userID].length > 2) messageHistory[userID].shift();
 
-  const userRef = doc(db, 'players', userID);
+  const userRef = doc(db, 'players', username.toLowerCase())
   let xpGained = 0;
   let totalXP = 0;
 
@@ -265,11 +273,11 @@ twitchClient.on('message', async (channel, tags, message, self) => {
 
   const currentLevelXP = remaining;
 
-  if (players[userID]) {
-    players[userID].xp = totalXP
-    players[userID].level = level
-    players[userID].requiredXP = xpForCurrentLevel
-  }
+  if (players[key]) {
+    players[key].xp = totalXP
+    players[key].level = level
+    players[key].requiredXP = xpForCurrentLevel
+  }  
 
   io.emit('chat-message', {
     username,

@@ -38,7 +38,6 @@ export function setupSocketHandlers({
 
     const liveLevels = {}
     const myId = user.id
-    console.log('🧠 Mon ID (user.id):', myId)
 
     if (myId && playersRef.current[myId]) {
       liveLevels[myId] = playersRef.current[myId].level
@@ -47,8 +46,6 @@ export function setupSocketHandlers({
     const bgSprite = app.stage.children.find(c => c instanceof PIXI.Sprite && c.texture?.baseTexture?.resource?.url === mapConfig.backgroundUrl)
     const scale = (bgSprite?.scale?.x > 0) ? bgSprite.scale.x : 1
 
-    console.log('📱 serverPlayers reçus:', Object.keys(serverPlayers))
-    console.log('🔍 Scale utilisé pour les joueurs:', scale)
 
     createOrUpdatePlayers(serverPlayers, playersRef.current, stage, user.id, liveLevels, scale)
     setPlayerCount(Object.keys(serverPlayers).length)
