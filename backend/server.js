@@ -289,6 +289,7 @@ twitchClient.on('message', async (channel, tags, message, self) => {
   players[key].requiredXP = xpForCurrentLevel;
 
   io.emit('chat-message', {
+    socketId: socket.id,
     username,
     message,
     xpGained,
