@@ -6,6 +6,7 @@ import { mapConfig } from '../constants/mapConfig'
 const PlayerContext = createContext(null)
 
 export function PlayerProvider({ children, user }) {
+  const backendURL = import.meta.env.VITE_BACKEND_URL
   const socket = useRef(null)
   const playersRef = useRef({})
   const [socketId, setSocketId] = useState(null)
@@ -41,7 +42,7 @@ export function PlayerProvider({ children, user }) {
   }
 
   useEffect(() => {
-    socket.current = io('https://offspot-4nz1.onrender.com')
+    socket.current = io(backendURL)    
 
     socket.current.on('connect', () => {
       setSocketId(socket.current.id)
