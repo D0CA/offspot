@@ -210,11 +210,6 @@ twitchClient.on('message', async (channel, tags, message, self) => {
   const key = username.toLowerCase()
   const userID = tags['user-id']
 
-  if (!players[key]) {
-    console.log(`[⛔] Message ignoré de ${username} (non connecté - ID: ${userID})`)
-    return
-  }
-
   if (!messageHistory[userID]) messageHistory[userID] = []
   const history = messageHistory[userID]
   const isOriginal = !history.includes(message)
