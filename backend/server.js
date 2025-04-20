@@ -63,6 +63,7 @@ let messageHistory = {};
 let players = {}
 let socketIdToUsername = {}
 let usernameToSocketId = {}
+let socketIdToTwitchId = {}
 
 let videoQueue = []
 let currentVideo = null
@@ -131,7 +132,7 @@ socket.on('new-player', async (data) => {
   }
 
   players[id] = playerData                  // 🧠 Stocké par userID
-  socketIdToTwitchId[socket.id] = id        // pour mouvements & déconnexion
+  socketIdToUsername[socket.id] = id        // pour mouvements & déconnexion
   usernameToSocketId[key] = socket.id       // si tu veux retrouver le socket par pseudo
 
   socket.emit('player-data', playerData)
