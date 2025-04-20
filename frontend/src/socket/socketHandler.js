@@ -47,7 +47,7 @@ export function setupSocketHandlers({
     const scale = (bgSprite?.scale?.x > 0) ? bgSprite.scale.x : 1
 
 
-    createOrUpdatePlayers(serverPlayers, playersRef.current, stage, user.id, liveLevels, scale)
+    createOrUpdatePlayers(serverPlayers, playersRef.current, stage, user.username.toLowerCase(), liveLevels, scale)
     setPlayerCount(Object.keys(serverPlayers).length)
   }
 

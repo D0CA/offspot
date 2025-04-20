@@ -24,14 +24,15 @@ export function PlayerProvider({ children, user }) {
     setXPRequired(xpRequired)
     setCurrentXP(currentLevelXP)
 
-    if (playersRef.current[user.id]) {
-      playersRef.current[user.id].level = level
-
-      if (playersRef.current[user.id].levelText) {
-        playersRef.current[user.id].levelText.text = `Niv ${level}`
+    const key = user.username.toLowerCase()
+    const player = playersRef.current[key]
+    
+    if (player) {
+      player.level = level
+      if (player.levelText) {
+        player.levelText.text = `Niv ${level}`
       }
-    }
-  }
+    }}    
 
   useEffect(() => {
     socket.current = io('https://offspot-4nz1.onrender.com')
@@ -89,6 +90,7 @@ export function PlayerProvider({ children, user }) {
         updateMyXP,
         logout,
         isMe: (id) => id === socketId,
+        getMyKey: () => user.username.toLowerCase()
       }}
     >
       {children}

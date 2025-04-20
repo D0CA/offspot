@@ -134,7 +134,7 @@ export default function GameScene() {
       }
 
       const { x, y } = event.data.global
-      const me = localRef.current[user?.id]
+      const me = localRef.current[user?.username?.toLowerCase()]
       if (!me || !backgroundRef.current) return
 
       if (me.blockInputUntil && Date.now() < me.blockInputUntil) {
