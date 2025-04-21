@@ -26,6 +26,18 @@ export default function VideoControls({ player }) {
     return () => s.off('video-queue', handleQueue);
   }, [socket.current]);
 
+  // Applique le volume dès que le player est prêt
+  useEffect(() => {
+    if (player && typeof player.setVolume === 'function') {
+      const saved = localStorage.getItem('preferredVolume');
+      const vol = saved ? parseInt(saved, 10) : 0;
+      if (vol > 0) {
+        player.unMute();
+        player.setVolume(vol);
+      }
+    }
+  }, [player]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!url || !socket.current || isCooldown) return;
@@ -83,6 +95,7 @@ export default function VideoControls({ player }) {
               max="100"
               value={volume}
               onChange={handleVolumeChange}
+              disabled={!player}
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={volume}
@@ -92,7 +105,11 @@ export default function VideoControls({ player }) {
           </div>
 
           {/* Skip */}
-          <button className="skip-btn" onClick={() => socket.current?.emit('skip-video')}>
+          <button
+            className="skip-btn"
+            onClick={() => socket.current?.emit('skip-video')}
+            disabled={!player}
+          >
             ⏭ Skip
           </button>
 
