@@ -244,8 +244,17 @@ export async function createOrUpdatePlayers(serverPlayers, localPlayers, stage, 
 
   for (const id in localPlayers) {
     if (!serverPlayers[id]) {
-      stage.removeChild(localPlayers[id].container);
-      delete localPlayers[id];
+      const player = localPlayers[id]
+      try {
+        if (player.chatBubble) {
+          player.chatBubble.destroy({ children: true })
+        }
+        player.container.destroy({ children: true })
+      } catch (e) {
+        console.warn('💥 Erreur destruction player container', e)
+      }
+      stage.removeChild(player.container)
+      delete localPlayers[id]
     }
-  }
+  }  
 }

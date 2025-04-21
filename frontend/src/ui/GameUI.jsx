@@ -52,16 +52,22 @@ export default function GameUI({ avatar, username, playerCount, onLogout }) {
   return (
     <div className="game-ui">
       <div className="user-info">
-        <img src={avatar} alt="avatar" className="avatar" />
+        <img src={avatar} alt="Avatar de l'utilisateur" className="avatar" />
         <div className="username-block">
           <div className="username">{username}</div>
-          <div className="level">Niveau {myLevel}</div>
+          <div className="level" aria-live="polite">
+            Niveau {myLevel}
+          </div>
           <div className="xp-bar-container">
             <div className="xp-bar" ref={xpBarRef}>
               <div className="xp-fill" ref={xpFillRef} />
             </div>
             <div className="xp-labels">
-              <span>{currentXP} / {xpRequired} XP</span>
+              <span
+                aria-label={`Progression de l'expérience : ${currentXP} sur ${xpRequired} XP`}
+              >
+                {currentXP} / {xpRequired} XP
+              </span>
             </div>
           </div>
         </div>
@@ -70,8 +76,16 @@ export default function GameUI({ avatar, username, playerCount, onLogout }) {
       <div className="spacer" />
 
       <div className="stats">
-        <span className="player-count">{playerCount} en ligne</span>
-        <button className="logout-button" onClick={onLogout}>Déconnexion</button>
+        <span className="player-count" aria-live="polite">
+          {playerCount} en ligne
+        </span>
+        <button
+          className="logout-button"
+          onClick={onLogout}
+          aria-label="Se déconnecter"
+        >
+          Déconnexion
+        </button>
       </div>
     </div>
   )

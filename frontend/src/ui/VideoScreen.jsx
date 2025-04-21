@@ -84,8 +84,8 @@ export default function VideoScreen({ cameraRef }) {
     s.on('clear-video', handleClear)
 
     return () => {
-      s.off('play-video', handlePlay)
-      s.off('clear-video', handleClear)
+      +s.off('play-video', handlePlay)
+      +s.off('clear-video', handleClear)
     }
   }, [socket.current])
 

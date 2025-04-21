@@ -17,11 +17,15 @@ let cachedTexture = null
 export async function displayChatBubble({ player, message, app }) {
   if (!player || !message) return
 
-  if (player.chatBubble?.parent) {
-    player.chatBubble.parent.removeChild(player.chatBubble)
-    player.chatBubble.destroy({ children: true })
+  if (player.chatBubble) {
+    try {
+      player.chatBubble.parent?.removeChild(player.chatBubble)
+      player.chatBubble.destroy({ children: true })
+    } catch (e) {
+      console.warn('💥 Erreur suppression chatBubble', e)
+    }
     player.chatBubble = null
-  }
+  }  
 
   if (!cachedTexture) {
     try {
@@ -165,6 +169,11 @@ function renderBubble({ player, message, app, texture }) {
         player.chatBubble = null
         app.ticker.remove(fadeOut)
       }
+      if (!bubble.parent || !player.container) {
+        bubble.destroy({ children: true })
+        player.chatBubble = null
+        return app.ticker.remove(fadeOut)
+      }      
     })
   }, duration)
 }

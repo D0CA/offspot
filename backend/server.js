@@ -89,6 +89,17 @@ io.on('connection', (socket) => {
 
   socket.on('new-player', async (data) => {
     const { username, avatar, id } = data
+  
+    const isValidUsername = typeof username === 'string' && /^[a-zA-Z0-9_]{3,20}$/.test(username)
+    const isValidAvatar = typeof avatar === 'string' && avatar.startsWith('https://')
+    const isValidId = typeof id === 'string' && id.length > 2
+  
+    if (!isValidUsername || !isValidAvatar || !isValidId) {
+      console.warn('[🚨] Données utilisateur invalides reçues de', socket.id, data)
+      socket.disconnect()
+      return
+    }
+  
     const key = username.toLowerCase()
 
     const userRef = doc(db, 'players', key)
@@ -147,21 +158,25 @@ io.on('connection', (socket) => {
 
   socket.on('submit-video', ({ url, username }) => {
     const isValidYouTubeUrl = (url) => {
-      const regex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]{11}/
-      return regex.test(url)
+      const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/)
+      return !!match && match[1].length === 11
     }
-
+  
     if (!url || typeof url !== 'string') return
     if (!isValidYouTubeUrl(url)) return
-
+  
     const videoData = { url, username: username || 'Anonyme' }
+  
+    // 🔁 éviter les doublons
+    if (videoQueue.some(v => v.url === url)) return
+  
     videoQueue.push(videoData)
-
+  
     io.emit('video-queue', videoQueue)
-
+  
     if (!currentVideo) playNextVideo()
   })
-
+  
   socket.on('get-video-queue', () => {
     socket.emit('video-queue', videoQueue)
   })

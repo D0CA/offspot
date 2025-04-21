@@ -54,6 +54,7 @@ export function setupSocketHandlers({
 
   // Attente du fond avant d’écouter
   window.addEventListener('pixi-ready', () => {
+    socket.off('update-players', handlePlayerUpdate) // empêche doublons
     socket.on('update-players', handlePlayerUpdate)
   })  
 

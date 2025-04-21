@@ -16,7 +16,11 @@ export function useAuth() {
     const avatar = url.searchParams.get('avatar')
     const id = url.searchParams.get('id')
 
-    if (username && avatar && id) {
+    const isValidUsername = typeof username === 'string' && /^[a-zA-Z0-9_]{3,20}$/.test(username)
+    const isValidAvatar = typeof avatar === 'string' && avatar.startsWith('https://')
+    const isValidId = typeof id === 'string' && id.length > 2
+
+    if (isValidUsername && isValidAvatar && isValidId) {
       const userData = { username, avatar, id }
       localStorage.setItem('offspot-user', JSON.stringify(userData))
       setUser(userData)
@@ -25,6 +29,8 @@ export function useAuth() {
       setTimeout(() => {
         window.history.replaceState({}, '', '/')
       }, 50)
+    } else {
+      console.warn('[🔐 useAuth] Paramètres d’auth invalides ignorés dans l’URL.', { username, avatar, id })
     }
   }, [])
 

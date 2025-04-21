@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { usePlayer } from '../context/PlayerContext'
 
 const isValidYouTubeUrl = (url) => {
-  const regex = /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]{11}/
-  return regex.test(url)
+  const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/)
+  return !!match && match[1].length === 11
 }
 
 export default function VideoControls({ player }) {
@@ -22,32 +22,42 @@ export default function VideoControls({ player }) {
     const s = socket.current
     if (!s) return
 
-    s.on('video-queue', setQueue)
+    const handleQueue = (queue) => setQueue(queue)
+    s.on('video-queue', handleQueue)
     s.emit('get-video-queue')
 
-    return () => s.off('video-queue')
+    return () => {
+      s.off('video-queue', handleQueue)
+    }
   }, [socket.current])
+
+  const [isCooldown, setIsCooldown] = useState(false)
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    if (!url || !socket.current) return
-
+    if (!url || !socket.current || isCooldown) return
+  
     if (!isValidYouTubeUrl(url)) {
       setError("URL invalide. Assure-toi qu'elle vient bien de YouTube.")
       return
     }
-
+  
     socket.current.emit('submit-video', {
       url,
       username: user?.username || 'Inconnu'
     })
-
+  
     setSubmitted(true)
     setError(null)
     setUrl('')
-    setTimeout(() => setSubmitted(false), 3000)
+    setIsCooldown(true)
+  
+    setTimeout(() => {
+      setSubmitted(false)
+      setIsCooldown(false)
+    }, 3000)
   }
-
+  
   const handleVolumeChange = (e) => {
     const newVolume = parseInt(e.target.value, 10)
     setVolume(newVolume)
@@ -78,6 +88,7 @@ export default function VideoControls({ player }) {
     }}>
       <button
         onClick={() => setOpen(!open)}
+        aria-label={open ? "Fermer les contrôles vidéo" : "Ouvrir les contrôles vidéo"}
         style={{
           background: 'linear-gradient(45deg, #ffdc73, #ffa94d)',
           color: '#1a1a1a',
@@ -97,13 +108,18 @@ export default function VideoControls({ player }) {
       {open && (
         <>
           <div style={{ marginBottom: '12px' }}>
-            🔊 Volume
+            <label htmlFor="volume-slider">🔊 Volume</label>
             <input
+              id="volume-slider"
               type="range"
               min="0"
               max="100"
               value={volume}
               onChange={handleVolumeChange}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={volume}
+              aria-label="Régler le volume"
               style={{ width: '100%' }}
             />
           </div>
@@ -131,6 +147,7 @@ export default function VideoControls({ player }) {
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               placeholder="URL YouTube..."
+              aria-label="Entrer une URL YouTube"
               style={{
                 padding: '6px',
                 borderRadius: '6px',
@@ -156,24 +173,30 @@ export default function VideoControls({ player }) {
           </form>
 
           <div>
-            <h4 style={{ color: '#ffd166', marginBottom: '10px' }}>
+            <h4 
+              id="playlist-title"
+              style={{ color: '#ffd166', marginBottom: '10px' }}
+            >
               🎥 Playlist <span style={{ fontWeight: 'normal', color: '#aaa' }}>({queue.length})</span>
             </h4>
 
             {queue.length === 0 && <p style={{ color: '#888' }}>Aucune vidéo en attente.</p>}
 
-            <ul style={{
-              paddingLeft: '18px',
-              fontSize: '13px',
-              lineHeight: '1.4',
-              maxHeight: '180px',
-              overflowY: 'auto'
-            }}>
-              {queue.map((item, i) => (
-                <li key={i} style={{ marginBottom: '10px' }}>
-                  <span style={{ color: '#ffcc00' }}>{item.username}</span><br />
-                  <span style={{ color: '#fff' }}>{item.url}</span>
-                </li>
+            <ul 
+              aria-labelledby="playlist-title"
+              style={{
+                paddingLeft: '18px',
+                fontSize: '13px',
+                lineHeight: '1.4',
+                maxHeight: '180px',
+                overflowY: 'auto'
+              }}
+            >
+            {queue.map((item, i) => (
+              <li key={i} style={{ marginBottom: '10px' }}>
+                <span style={{ color: '#ffcc00' }}>{item.username}</span><br />
+                <span style={{ color: '#fff' }}>{item.url}</span>
+              </li>
               ))}
             </ul>
           </div>

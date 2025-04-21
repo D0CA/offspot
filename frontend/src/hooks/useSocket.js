@@ -30,5 +30,9 @@ export function useSocket(appRef, stageRef, setPlayerCount) {
       setPlayerCount,
       updateMyXP
     })
+
+    return () => {
+      socket.current?.removeAllListeners()
+    }
   }, [user, socket.current, appRef?.current, stageRef?.current])
 }

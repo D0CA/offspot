@@ -107,6 +107,8 @@ export default function GameScene() {
       clampCamera()
     }
 
+    let handleResize = null
+
     PIXI.Assets.load(mapConfig.backgroundUrl).then((bgTexture) => {
       const bg = new PIXI.Sprite(bgTexture)
       bg.anchor.set(0)
@@ -116,8 +118,9 @@ export default function GameScene() {
       backgroundRef.current = bg
       cameraContainer.current.addChild(bg)
 
-      window.addEventListener('resize', () => resizeBackground(bg))
-      resizeBackground(bg)
+      handleResize = () => resizeBackground(bg)
+      window.addEventListener('resize', handleResize)
+      resizeBackground(bg)      
 
       window.dispatchEvent(new Event('pixi-ready'))
     }).catch((e) => {
@@ -259,7 +262,10 @@ export default function GameScene() {
       }
     })
 
-    return () => app.current.destroy(true, { children: true })
+    return () => {
+      if (handleResize) window.removeEventListener('resize', handleResize)
+      app.current?.destroy(true, { children: true })
+    }    
   }, [])
 
   useEffect(() => {
