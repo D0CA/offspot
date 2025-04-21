@@ -30,34 +30,31 @@ export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerC
 
     // Reference to canvas and drag state variables
     const canvas = app.view;
-    // Drag state for panning
     let isDragging = false;
     let dragMoved = false;
-    const clickThreshold = 5; // pixels threshold
+    const clickThreshold = 5;
     let start = { x: 0, y: 0 };
 
-    // ===== CURSOR HANDLING =====
-    // default pointer
+    // ===== CURSOR HANDLING & DRAG CANCEL =====
     canvas.classList.add('custom-cursor');
-    // on drag cursor style
-    canvas.addEventListener('pointerdown', () => {
-      canvas.classList.add('drag-mode');
-    });
-    canvas.addEventListener('pointerup', () => {
-      canvas.classList.remove('drag-mode');
-    });
-    // click feedback
+    canvas.addEventListener('pointerdown', () => canvas.classList.add('drag-mode'));
+    canvas.addEventListener('pointerup', () => canvas.classList.remove('drag-mode'));
     canvas.addEventListener('click', () => {
       canvas.classList.add('cursor-click');
       setTimeout(() => canvas.classList.remove('cursor-click'), 150);
     });
-    // Cancel drag if pointer leaves canvas (e.g., UI overlay)
-    canvas.addEventListener('pointerleave', () => {
+    // Cancel drag if pointer leaves canvas/UI overlay
+    const cancelDrag = () => {
       if (isDragging) {
         isDragging = false;
         dragMoved = false;
         document.body.classList.remove('dragging');
       }
+    };
+    canvas.addEventListener('pointerleave', cancelDrag);
+    canvas.addEventListener('pointercancel', cancelDrag);
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) cancelDrag();
     });
     // ============================
 
@@ -67,47 +64,42 @@ export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerC
     world.hitArea = app.screen;
     app.stage.addChild(world);
 
-    // Camera container (holds map + players)
+    // Camera container
     const camera = new PIXI.Container();
-    camera.sortableChildren = true; // Enable zIndex sorting
+    camera.sortableChildren = true;
     world.addChild(camera);
     cameraRef.current = camera;
 
-    // Clamp camera within map bounds
+    // Clamp function
     const clampCamera = () => {
       const cam = cameraRef.current;
       if (!cam) return;
       const scale = cam.scale.x;
       const { width, height } = mapConfig;
-      const screenW = window.innerWidth;
-      const screenH = window.innerHeight;
-      const mapW = width * scale;
-      const mapH = height * scale;
-      cam.x = clamp(cam.x, screenW - mapW, 0);
-      cam.y = clamp(cam.y, screenH - mapH, 0);
+      cam.x = clamp(cam.x, window.innerWidth - width * scale, 0);
+      cam.y = clamp(cam.y, window.innerHeight - height * scale, 0);
     };
 
-    // Debounced resize handler
+    // Resize handler
     const handleResize = debounce(() => {
       const cam = cameraRef.current;
       if (!cam) return;
       const { width, height } = mapConfig;
-      const scaleX = window.innerWidth / width;
-      const scaleY = window.innerHeight / height;
-      cam.scale.set(Math.min(scaleX, scaleY) * 1.2);
+      const scale = Math.min(window.innerWidth / width, window.innerHeight / height) * 1.2;
+      cam.scale.set(scale);
       clampCamera();
       app.renderer.resize(window.innerWidth, window.innerHeight);
     }, 100);
     window.addEventListener('resize', handleResize);
     window.addEventListener('pixi-ready', handleResize);
 
-    // Load background image
+    // Load background
     (async () => {
       try {
         const texture = await PIXI.Assets.load(mapConfig.backgroundUrl);
         const bg = new PIXI.Sprite(texture);
         bg.anchor.set(0);
-        bg.zIndex = -100; // behind all players
+        bg.zIndex = -100;
         cameraRef.current?.addChild(bg);
         window.dispatchEvent(new Event('pixi-ready'));
       } catch (err) {
@@ -115,40 +107,34 @@ export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerC
       }
     })();
 
-    // Load chat emotes
+    // Load emotes
     load7TVEmotes();
 
-    // Pan controls
+    // Pan controls with cancel handlers
     world.on('pointerdown', e => {
       isDragging = true;
       dragMoved = false;
       start = { x: e.data.global.x, y: e.data.global.y };
       document.body.classList.add('dragging');
     });
-
     world.on('pointermove', e => {
       if (!isDragging) return;
       const dx0 = e.data.global.x - start.x;
       const dy0 = e.data.global.y - start.y;
-      if (!dragMoved && Math.hypot(dx0, dy0) > clickThreshold) {
-        dragMoved = true;
-      }
+      if (!dragMoved && Math.hypot(dx0, dy0) > clickThreshold) dragMoved = true;
       if (!dragMoved) return;
       const cam = cameraRef.current;
-      const { x, y } = e.data.global;
-      cam.x += x - start.x;
-      cam.y += y - start.y;
-      start = { x, y };
+      cam.x += e.data.global.x - start.x;
+      cam.y += e.data.global.y - start.y;
+      start = { x: e.data.global.x, y: e.data.global.y };
       clampCamera();
     });
-
     world.on('pointerup', e => {
       isDragging = false;
       document.body.classList.remove('dragging');
       if (!dragMoved) {
-        const cam = cameraRef.current;
         const { x, y } = e.data.global;
-        const { x: lx, y: ly } = computeLocalCoords(x, y, cam.x, cam.y, cam.scale.x);
+        const { x: lx, y: ly } = computeLocalCoords(x, y, cameraRef.current.x, cameraRef.current.y, cameraRef.current.scale.x);
         const { walkableArea } = mapConfig;
         const tx = clamp(lx, walkableArea.minX, walkableArea.maxX);
         const ty = clamp(ly, walkableArea.minY, walkableArea.maxY);
@@ -162,7 +148,11 @@ export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerC
         }
       }
     });
+    // Also cancel if released outside
+    world.on('pointerupoutside', cancelDrag);
+    world.on('pointercancel', cancelDrag);
 
+    // Zoom
     world.on('wheel', e => {
       e.stopPropagation();
       const cam = cameraRef.current;
@@ -178,57 +168,50 @@ export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerC
       clampCamera();
     });
 
-    // Ticker: handle movement and layering with delta-time
-    const tick = (delta) => {
+    // Ticker
+    const tick = delta => {
       const step = SPEED * delta;
       Object.values(localRef.current).forEach(p => {
-        if (!p || !p.container || !p.anims) return;
+        if (!p?.container || !p.anims) return;
         const dx = p.targetX - p.container.x;
         const dy = p.targetY - p.container.y;
         const dist = Math.hypot(dx, dy);
         const moving = dist > step;
-
-        // Move sprite
         if (p.justSpawned) {
           p.container.x = p.targetX;
           p.container.y = p.targetY;
           p.justSpawned = false;
         } else if (moving) {
-          p.container.x += (dx / dist) * step;
-          p.container.y += (dy / dist) * step;
+          p.container.x += dx / dist * step;
+          p.container.y += dy / dist * step;
         } else {
           p.container.x = p.targetX;
           p.container.y = p.targetY;
         }
-
-        // Direction & animation
         let dir = p.currentDirection;
-        if (moving) {
-          dir = Math.abs(dx) > Math.abs(dy)
-            ? (dx > 0 ? 'Left' : 'Right')
-            : (dy > 0 ? 'Front' : 'Back');
-        }
+        if (moving) dir = Math.abs(dx) > Math.abs(dy) ? (dx > 0 ? 'Left' : 'Right') : (dy > 0 ? 'Front' : 'Back');
         const anim = moving ? 'WalkAnim' : 'IdleAnim';
         if (anim !== p.currentAnim || dir !== p.currentDirection) {
           const arm = p.anims[dir]?.animation;
-          if (arm && arm.hasAnimation(anim)) arm.fadeIn(anim, 0, 0);
+          if (arm?.hasAnimation(anim)) arm.fadeIn(anim, 0, 0);
           p.currentAnim = anim;
           p.currentDirection = dir;
         }
-
-        // Layering & visibility
         p.container.zIndex = p.container.y;
         Object.entries(p.anims).forEach(([d, animDisplay]) => animDisplay.visible = d === p.currentDirection);
       });
     };
     app.ticker.add(tick);
 
-    // Socket handlers setup
+    // Socket handlers
     setupSocketHandlers({ socket: socket.current, app, playersRef: localRef, stage: cameraRef.current, user, setPlayerCount, updateMyXP });
 
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('pixi-ready', handleResize);
+      document.removeEventListener('visibilitychange', cancelDrag);
+      canvas.removeEventListener('pointerleave', cancelDrag);
+      canvas.removeEventListener('pointercancel', cancelDrag);
       world.removeAllListeners();
       app.ticker.remove(tick);
       app.destroy(true, { children: true });
