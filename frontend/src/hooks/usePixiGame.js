@@ -28,11 +28,18 @@ export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerC
     });
     pixiContainer.current.appendChild(app.view);
 
-    // ===== CURSOR HANDLING =====
+    // Reference to canvas and drag state variables
     const canvas = app.view;
+    // Drag state for panning
+    let isDragging = false;
+    let dragMoved = false;
+    const clickThreshold = 5; // pixels threshold
+    let start = { x: 0, y: 0 };
+
+    // ===== CURSOR HANDLING =====
     // default pointer
     canvas.classList.add('custom-cursor');
-    // on drag
+    // on drag cursor style
     canvas.addEventListener('pointerdown', () => {
       canvas.classList.add('drag-mode');
     });
@@ -43,6 +50,14 @@ export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerC
     canvas.addEventListener('click', () => {
       canvas.classList.add('cursor-click');
       setTimeout(() => canvas.classList.remove('cursor-click'), 150);
+    });
+    // Cancel drag if pointer leaves canvas (e.g., UI overlay)
+    canvas.addEventListener('pointerleave', () => {
+      if (isDragging) {
+        isDragging = false;
+        dragMoved = false;
+        document.body.classList.remove('dragging');
+      }
     });
     // ============================
 
@@ -104,11 +119,6 @@ export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerC
     load7TVEmotes();
 
     // Pan controls
-    let isDragging = false;
-    let dragMoved = false;
-    const clickThreshold = 5; // pixels
-    let start = { x: 0, y: 0 };
-
     world.on('pointerdown', e => {
       isDragging = true;
       dragMoved = false;
