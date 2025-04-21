@@ -1,4 +1,4 @@
-/* src/ui/GameUI.css */
+/* src/ui/GameUI.css - Responsive with centered, fluid-width XP bar */
 
 .game-ui {
   position: absolute;
@@ -7,15 +7,17 @@
   width: 100%;
   padding: 8px 20px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   color: white;
   z-index: 10;
   box-sizing: border-box;
-  font-family: 'Poppins', sans-serif;  /* Poppins pour l'UI */
-  pointer-events: none; /* laisse les interactions possibles ailleurs */
+  font-family: 'Poppins', sans-serif;
+  pointer-events: none;
 }
 
+/* User info section adapts */
 .user-info {
   display: flex;
   align-items: center;
@@ -24,24 +26,27 @@
 }
 
 .avatar {
-  width: 64px;
-  height: 64px;
+  width: 8vw;
+  max-width: 64px;
+  min-width: 40px;
+  height: auto;
+  aspect-ratio: 1;
   border-radius: 50%;
   object-fit: cover;
   border: 4px solid #ffffff;
-  box-shadow: 0 0 6px rgba(0, 0, 0, 0.5); /* adding shadow for a glowing effect */
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
 }
 
 .username-block {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  text-shadow: 0 0 6px rgba(0, 0, 0, 0.6); /* subtle shadow */
+  text-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
 }
 
 .username {
-  font-family: 'Cherry Bomb One', cursive;  /* Cherry Bomb One pour les titres */
-  font-size: 24px;
+  font-family: 'Cherry Bomb One', cursive;
+  font-size: clamp(1rem, 2.5vw, 1.5rem);
   font-weight: bold;
   margin-top: 4px;
   color: #ffffff;
@@ -49,24 +54,24 @@
 }
 
 .level {
-  font-size: 14px;
+  font-size: clamp(0.75rem, 1.5vw, 1rem);
   color: #ff4369;
 }
 
+/* Centered XP bar at top with fluid width */
 .xp-bar-container {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   pointer-events: all;
+  /* fluid width: min 200px, ideal 50vw, max 450px */
+  width: clamp(200px, 50vw, 450px);
 }
 
 .xp-bar {
   background: #2c3e50;
   height: 16px;
-  width: 450px;
+  width: 100%;
   border-radius: 12px;
   overflow: hidden;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
@@ -81,37 +86,14 @@
   will-change: width, transform;
 }
 
-@keyframes rainbow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.xp-glow {
-  animation: xpGlowPulse 0.5s ease-out;
-}
-
-@keyframes xpGlowPulse {
-  0% {
-    box-shadow: 0 0 0px rgba(255, 255, 255, 0);
-    transform: scaleX(1);
-  }
-  50% {
-    box-shadow: 0 0 16px rgba(255, 255, 255, 0.7);
-    transform: scaleX(1.03);
-  }
-  100% {
-    box-shadow: 0 0 0px rgba(255, 255, 255, 0);
-    transform: scaleX(1);
-  }
-}
-
 .xp-labels {
-  font-size: 14px;
+  font-size: clamp(0.75rem, 1.5vw, 1rem);
   color: #ecf0f1;
   margin-top: 6px;
+  text-align: center;
 }
 
+/* Spacer flexes */
 .spacer {
   flex: 1;
 }
@@ -124,90 +106,76 @@
 }
 
 .player-count {
-  font-size: 16px;
+  font-size: clamp(1rem, 2vw, 1.125rem);
   color: #e74c3c;
   font-weight: bold;
 }
 
 .logout-button {
-  background: linear-gradient(45deg, #f39c12, #e74c3c, #ff6f61); /* dégradé tropical entre orange, jaune et rouge */
+  background: linear-gradient(45deg, #f39c12, #e74c3c, #ff6f61);
   border: none;
   color: white;
   padding: 12px 16px;
-  font-size: 12px;
-  border-radius: 8px; /* bords arrondis */
+  font-size: clamp(0.75rem, 1.5vw, 1rem);
+  border-radius: 8px;
   transition: transform 0.2s ease, box-shadow 0.3s ease, background-color 0.3s ease;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* effet de profondeur */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .logout-button:hover {
-  background: linear-gradient(45deg, #f1c40f, #ff7f50, #e74c3c); /* effets lumineux au survol */
-  transform: scale(1.05); /* léger agrandissement */
-  box-shadow: 0 6px 12px rgba(255, 99, 71, 0.5); /* lueur tropicale */
+  background: linear-gradient(45deg, #f1c40f, #ff7f50, #e74c3c);
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(255, 99, 71, 0.5);
 }
 
 .logout-button:active {
   transform: scale(1);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* effet plus subtil au clic */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
 }
 
-
-/* Flash effect when level up */
+/* Level-up flash and rainbow unchanged */
 .xp-bar.flash {
   animation: flashGlow 1s ease-out;
   box-shadow: 0 0 20px 8px rgba(255, 255, 255, 0.5);
 }
-
-@keyframes flashGlow {
-  0% {
-    box-shadow: 0 0 0px 0px rgba(255, 255, 255, 0);
-    transform: scale(1);
-  }
-  50% {
-    box-shadow: 0 0 30px 15px rgba(255, 255, 255, 0.8);
-    transform: scale(1.1);
-  }
-  100% {
-    box-shadow: 0 0 0px 0px rgba(255, 255, 255, 0);
-    transform: scale(1);
-  }
-}
-
-.level-up-popup {
-  position: fixed;
-  top: 30%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 32px;
-  font-weight: bold;
-  color: #ffdc73;
-  text-shadow: 0 0 10px #ffcc00, 0 0 20px #ffaa00;
-  animation: levelPop 1.2s ease-out forwards;
-  z-index: 999;
-  pointer-events: none;
-}
-
-@keyframes levelPop {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, -60%) scale(0.9);
-  }
-  30% {
-    opacity: 1;
-    transform: translate(-50%, -50%) scale(1.1);
-  }
-  60% {
-    transform: translate(-50%, -50%) scale(1);
-  }
-  100% {
-    opacity: 0;
-    transform: translate(-50%, -40%) scale(1);
-  }
-}
-
-.rainbow {
-  background: linear-gradient(135deg, #f39c12, #e74c3c, #3498db, #2ecc71, #8e44ad, #ff1493); /* Tropical gradient */
-  background-size: 800% 100%;
+.xp-fill.rainbow {
   animation: rainbow 12s ease-in-out infinite;
 }
 
+@keyframes rainbow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes flashGlow {
+  0% { box-shadow: 0 0 0px 0px rgba(255, 255, 255, 0); transform: scale(1); }
+  50% { box-shadow: 0 0 30px 15px rgba(255, 255, 255, 0.8); transform: scale(1.1); }
+  100% { box-shadow: 0 0 0px 0px rgba(255, 255, 255, 0); transform: scale(1); }
+}
+
+/* Responsive breakpoints */
+@media (max-width: 768px) {
+  .game-ui {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 8px;
+  }
+  .user-info {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+  .stats {
+    width: 100%;
+    justify-content: space-between;
+    margin-top: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .avatar { max-width: 48px; min-width: 32px; }
+  .username { font-size: 1rem; }
+  .xp-labels, .level { font-size: 0.75rem; }
+  .logout-button { padding: 8px 12px; font-size: 0.75rem; }
+}

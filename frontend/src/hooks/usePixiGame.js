@@ -1,4 +1,3 @@
-// src/hooks/usePixiGame.js
 import { useEffect, useRef } from 'react';
 import * as PIXI from 'pixi.js';
 import { clamp, computeLocalCoords } from '../utils/mathUtils';
@@ -28,6 +27,24 @@ export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerC
       resizeTo: window,
     });
     pixiContainer.current.appendChild(app.view);
+
+    // ===== CURSOR HANDLING =====
+    const canvas = app.view;
+    // default pointer
+    canvas.classList.add('custom-cursor');
+    // on drag
+    canvas.addEventListener('pointerdown', () => {
+      canvas.classList.add('drag-mode');
+    });
+    canvas.addEventListener('pointerup', () => {
+      canvas.classList.remove('drag-mode');
+    });
+    // click feedback
+    canvas.addEventListener('click', () => {
+      canvas.classList.add('cursor-click');
+      setTimeout(() => canvas.classList.remove('cursor-click'), 150);
+    });
+    // ============================
 
     // World container
     const world = new PIXI.Container();
@@ -88,14 +105,25 @@ export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerC
 
     // Pan controls
     let isDragging = false;
+    let dragMoved = false;
+    const clickThreshold = 5; // pixels
     let start = { x: 0, y: 0 };
+
     world.on('pointerdown', e => {
       isDragging = true;
+      dragMoved = false;
       start = { x: e.data.global.x, y: e.data.global.y };
       document.body.classList.add('dragging');
     });
+
     world.on('pointermove', e => {
       if (!isDragging) return;
+      const dx0 = e.data.global.x - start.x;
+      const dy0 = e.data.global.y - start.y;
+      if (!dragMoved && Math.hypot(dx0, dy0) > clickThreshold) {
+        dragMoved = true;
+      }
+      if (!dragMoved) return;
       const cam = cameraRef.current;
       const { x, y } = e.data.global;
       cam.x += x - start.x;
@@ -103,24 +131,28 @@ export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerC
       start = { x, y };
       clampCamera();
     });
+
     world.on('pointerup', e => {
       isDragging = false;
       document.body.classList.remove('dragging');
-      const cam = cameraRef.current;
-      const { x, y } = e.data.global;
-      const { x: lx, y: ly } = computeLocalCoords(x, y, cam.x, cam.y, cam.scale.x);
-      const { walkableArea } = mapConfig;
-      const tx = clamp(lx, walkableArea.minX, walkableArea.maxX);
-      const ty = clamp(ly, walkableArea.minY, walkableArea.maxY);
-      const me = localRef.current[user.username.toLowerCase()];
-      if (me && (!me.blockInputUntil || Date.now() >= me.blockInputUntil)) {
-        me.targetX = tx;
-        me.targetY = ty;
-        me.tileX = tx;
-        me.tileY = ty;
-        socket.current.emit('move', { x: tx, y: ty });
+      if (!dragMoved) {
+        const cam = cameraRef.current;
+        const { x, y } = e.data.global;
+        const { x: lx, y: ly } = computeLocalCoords(x, y, cam.x, cam.y, cam.scale.x);
+        const { walkableArea } = mapConfig;
+        const tx = clamp(lx, walkableArea.minX, walkableArea.maxX);
+        const ty = clamp(ly, walkableArea.minY, walkableArea.maxY);
+        const me = localRef.current[user.username.toLowerCase()];
+        if (me && (!me.blockInputUntil || Date.now() >= me.blockInputUntil)) {
+          me.targetX = tx;
+          me.targetY = ty;
+          me.tileX = tx;
+          me.tileY = ty;
+          socket.current.emit('move', { x: tx, y: ty });
+        }
       }
     });
+
     world.on('wheel', e => {
       e.stopPropagation();
       const cam = cameraRef.current;
@@ -136,9 +168,9 @@ export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerC
       clampCamera();
     });
 
-    // Ticker: handle movement and layering with delta-time (using frame delta)
+    // Ticker: handle movement and layering with delta-time
     const tick = (delta) => {
-      const step = SPEED * delta; // pixels per frame * number of frames
+      const step = SPEED * delta;
       Object.values(localRef.current).forEach(p => {
         if (!p || !p.container || !p.anims) return;
         const dx = p.targetX - p.container.x;
@@ -146,7 +178,7 @@ export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerC
         const dist = Math.hypot(dx, dy);
         const moving = dist > step;
 
-        // Move sprite using frame delta
+        // Move sprite
         if (p.justSpawned) {
           p.container.x = p.targetX;
           p.container.y = p.targetY;
@@ -155,20 +187,17 @@ export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerC
           p.container.x += (dx / dist) * step;
           p.container.y += (dy / dist) * step;
         } else {
-          // Snap exactly when within step
           p.container.x = p.targetX;
           p.container.y = p.targetY;
         }
 
-        // Determine direction
+        // Direction & animation
         let dir = p.currentDirection;
         if (moving) {
           dir = Math.abs(dx) > Math.abs(dy)
             ? (dx > 0 ? 'Left' : 'Right')
             : (dy > 0 ? 'Front' : 'Back');
         }
-
-        // Determine animation
         const anim = moving ? 'WalkAnim' : 'IdleAnim';
         if (anim !== p.currentAnim || dir !== p.currentDirection) {
           const arm = p.anims[dir]?.animation;
@@ -177,25 +206,15 @@ export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerC
           p.currentDirection = dir;
         }
 
-        // Update layering and visibility
+        // Layering & visibility
         p.container.zIndex = p.container.y;
         Object.entries(p.anims).forEach(([d, animDisplay]) => animDisplay.visible = d === p.currentDirection);
       });
     };
-    app.ticker.remove(tick);
     app.ticker.add(tick);
 
-
     // Socket handlers setup
-    setupSocketHandlers({
-      socket: socket.current,
-      app,
-      playersRef: localRef,
-      stage: cameraRef.current,
-      user,
-      setPlayerCount,
-      updateMyXP,
-    });
+    setupSocketHandlers({ socket: socket.current, app, playersRef: localRef, stage: cameraRef.current, user, setPlayerCount, updateMyXP });
 
     return () => {
       window.removeEventListener('resize', handleResize);
