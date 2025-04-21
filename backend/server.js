@@ -194,6 +194,15 @@ io.on('connection', (socket) => {
     }
   })
 
+  // Ping‑pong pour synchronisation vidéo
+  socket.on('video-sync-request', ({ clientSendTime }) => {
+    socket.emit('video-sync-response', {
+      clientSendTime,                      // renvoyé tel quel au client
+      serverTime:       Date.now(),        // l’heure serveur à l’instant de la requête
+      serverVideoStartTime: videoStartTime // la même valeur que dans play-video
+    });
+  });  
+
   socket.on('disconnect', () => {
     const key = socketIdToUsername[socket.id]
     delete players[key]

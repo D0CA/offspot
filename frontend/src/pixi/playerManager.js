@@ -5,8 +5,7 @@ import { mapConfig } from '../constants/mapConfig';
 
 const dragonBonesFactory = dragonBones.PixiFactory.factory;
 const directions = ['Front', 'Back', 'Left', 'Right'];
-const ANIMATION_SPEED = 1.2;
-const PLAYER_MOVE_SPEED = 3;
+const ANIMATION_SPEED = 1.3;
 const PLAYER_SCALE = 1.3;
 let isDragonBonesLoaded = false;
 let isLoadingDragonBones = false;
@@ -73,7 +72,7 @@ function createArmaturesForPlayer(id, data, container, anims) {
               p.isSpawning = false;
               p.blockInputUntil = Date.now();
             }
-          }, 2000);
+          }, 1300);
 
           armature.once(dragonBones.EventObject.COMPLETE, (event) => {
             if (event.animationState?.name === "SpawnAnim") {

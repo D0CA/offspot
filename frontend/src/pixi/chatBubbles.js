@@ -1,4 +1,3 @@
-
 import * as PIXI from 'pixi.js'
 import { Assets } from 'pixi.js'
 import { getEmoteUrl } from '../utils/7tv'
@@ -13,6 +12,8 @@ const H_PADDING = 40
 const V_PADDING = 36
 
 let cachedTexture = null
+// Cache des textures d’emotes pour éviter de recréer à chaque chat
+const emoteTextureCache = new Map()
 
 export async function displayChatBubble({ player, message, app }) {
   if (!player || !message) return
@@ -81,7 +82,12 @@ function renderBubble({ player, message, app, texture }) {
       let displayObject
       if (seg.type === 'emote') {
         try {
-          const tex = PIXI.Texture.from(seg.url)
+          // Utilisation du cache pour les textures
+          let tex = emoteTextureCache.get(seg.url)
+          if (!tex) {
+            tex = PIXI.Texture.from(seg.url)
+            emoteTextureCache.set(seg.url, tex)
+          }
           const sprite = new PIXI.Sprite(tex)
           sprite.width = sprite.height = EMOTE_SIZE
           displayObject = sprite

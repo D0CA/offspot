@@ -1,0 +1,117 @@
+/* src/components/VideoControls.css */
+
+/* Container principal */
+.video-controls {
+    position: absolute;
+    bottom: 30px;
+    right: 30px;
+    background: rgba(20, 15, 25, 0.85);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.3);
+    border-radius: 12px;
+    padding: 10px;
+    color: #fff;
+    font-family: 'Poppins', sans-serif;
+    overflow: hidden;
+    z-index: 9999;
+    transition: width 0.3s ease;
+  }
+  
+  /* Ouvert vs fermé */
+  .video-controls.closed { width: 60px; }
+  .video-controls.open   { width: 380px; }
+  
+  /* Bouton principal */
+  .video-controls .toggle-btn {
+    background: linear-gradient(45deg, #ffdc73, #ffa94d);
+    color: #1a1a1a;
+    border: none;
+    border-radius: 8px;
+    width: 100%;
+    padding: 10px;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    margin-bottom: 14px;
+    transition: all 0.3s ease;
+  }
+  
+  /* Panel fermé masque le padding */
+  .video-controls.closed .toggle-btn { margin-bottom: 0; }
+  
+  /* Skip & Add */
+  .video-controls button {
+    width: 100%;
+    border: none;
+    border-radius: 8px;
+    padding: 8px;
+    font-weight: bold;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    margin-bottom: 12px;
+  }
+  
+  .video-controls .skip-btn {
+    background: linear-gradient(45deg, #ff6f61, #e74c3c);
+  }
+  
+  /* Formulaire */
+  .video-controls form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  
+  .video-controls form input[type="text"] {
+    padding: 6px;
+    border-radius: 6px;
+    border: 1px solid #888;
+    background: #1d1b20;
+    color: #fff;
+  }
+  
+  /* Bouton ajouter */
+  .video-controls .add-btn {
+    background: linear-gradient(45deg, #ffc857, #ffb347);
+    padding: 6px;
+  }
+  
+  /* État disabled */
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  /* Playlist */
+  .video-controls .playlist {
+    padding-left: 18px;
+    font-size: 13px;
+    line-height: 1.4;
+    max-height: 180px;
+    overflow-y: auto;
+  }
+  
+  .video-controls .playlist h4 {
+    color: #ffd166;
+    margin-bottom: 10px;
+  }
+  
+  .video-controls .playlist p {
+    color: #888;
+  }
+  
+  .video-controls .playlist li {
+    margin-bottom: 10px;
+    list-style: none;
+  }
+  
+  .video-controls .playlist .username {
+    font-size: 16px;
+    color: #ffcc00;
+  }
+  
+  .video-controls .playlist .url {
+    color: #fff;
+    font-size: 8px;
+  }
+  
