@@ -196,14 +196,13 @@ io.on('connection', (socket) => {
   })
 
   socket.on('start-challenge', ({ type, targetUsername }) => {
-    const challenger = socketIdToUsername[socket.id]
-    const targetSocketId = usernameToSocketId[targetUsername.toLowerCase()]
-    if (!challenger || !targetSocketId) return
-    io.to(targetSocketId).emit('challenge-request', { challenger, game: type })
-  })
+    const challenger = socketIdToUsername[socket.id];
+    const to = usernameToSocketId[targetUsername.toLowerCase()];
+    if (challenger && to) io.to(to).emit('challenge-request', { challenger, game: type });
+  });
 
-  handleMorpionSockets(io, activeGames, rematchQueue, socketIdToUsername, usernameToSocketId, socket)
-  handlePuissance4Sockets(io, activeGames, socketIdToUsername, usernameToSocketId, socket)
+  handleMorpionSockets(io, activeGames, rematchQueue, socketIdToUsername, usernameToSocketId, socket);
+  handlePuissance4Sockets(io, socket, activeGames, socketIdToUsername, usernameToSocketId, rematchQueue);
 
   socket.on('puissance4-close', ({ opponent }) => {
     const toSocketId = usernameToSocketId[opponent.toLowerCase()]
