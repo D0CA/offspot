@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom'
 import GameUI from '../ui/GameUI';
 import VideoScreen from '../ui/VideoScreen';
 import LoadingScreen from '../ui/LoadingScreen';
@@ -68,20 +69,23 @@ export default function GameScene() {
 
   return (
     <>
-      {challengePrompt && (
-        <ChallengePrompt
-          challenger={challengePrompt.challenger}
-          game={challengePrompt.game}
-          onAccept={() => {
-            socket.current.emit('challenge-accept', {
-              challenger: challengePrompt.challenger,
-              game: challengePrompt.game,
-            });
-            setChallengePrompt(null);
-          }}
-          onDecline={() => setChallengePrompt(null)}
-        />
-      )}
+      {challengePrompt &&
+        createPortal(
+          <ChallengePrompt
+            challenger={challengePrompt.challenger}
+            game={challengePrompt.game}
+            onAccept={() => {
+              socket.current.emit('challenge-accept', {
+                challenger: challengePrompt.challenger,
+                game: challengePrompt.game,
+              })
+              setChallengePrompt(null)
+            }}
+            onDecline={() => setChallengePrompt(null)}
+          />,
+          document.body
+        )
+      }
 
       <LoadingScreen loading={loading} />
 
