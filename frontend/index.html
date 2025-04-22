@@ -18,10 +18,25 @@
         display: block;
         image-rendering: auto;
         }
+        #ui-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: 999999;
+        pointer-events: none;
+      }
+
+      #ui-overlay > * {
+        pointer-events: auto;
+      }
+
     </style>
   </head>
   <body>
     <div id="root"></div>
+    <div id="ui-overlay"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

@@ -83,7 +83,7 @@ export default function GameScene() {
             }}
             onDecline={() => setChallengePrompt(null)}
           />,
-          document.body
+          document.getElementById('ui-overlay') || document.body
         )
       }
 
