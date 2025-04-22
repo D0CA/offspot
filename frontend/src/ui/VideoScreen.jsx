@@ -8,7 +8,6 @@ export default function VideoScreen({ cameraRef }) {
   const [embedSrc, setEmbedSrc] = useState(null)
   const [player,   setPlayer]   = useState(null)
   const iframeRef = useRef(null)
-  const [videoVisible, setVideoVisible] = useState(true);
 
   // Sync state
   const [serverVideoStartTime, setServerVideoStartTime] = useState(0)
@@ -48,19 +47,6 @@ export default function VideoScreen({ cameraRef }) {
       window.removeEventListener('pixi-ready', updateStyle)
     }
   }, [cameraRef])
-
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        setVideoVisible(false);
-      } else {
-        setTimeout(() => setVideoVisible(true), 100);
-      }
-    }
-  
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);  
 
   useEffect(() => {
     if (iframeRef.current) {
@@ -169,7 +155,7 @@ export default function VideoScreen({ cameraRef }) {
 
   return (
     <>
-    {embedSrc && videoVisible && (
+    {embedSrc && (
       <div style={style}>
         <iframe
           ref={iframeRef}
