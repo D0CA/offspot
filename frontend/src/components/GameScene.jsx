@@ -45,19 +45,14 @@ export default function GameScene() {
   }, []);
 
   useEffect(() => {
-    if (!socket.current) return;
-
     const handleChallengeRequest = (e) => {
-      const { challenger, game } = e.detail;
-      console.log('[CLIENT] challenge-request reçu', challenger, game);
-      setChallengePrompt({ challenger, game });
-    };
-
-    window.addEventListener('challenge-request', handleChallengeRequest);
-    return () => {
-      window.removeEventListener('challenge-request', handleChallengeRequest);
-    };
-  }, [socket]);
+      const { challenger, game } = e.detail
+      setChallengePrompt({ challenger, game })
+    }
+  
+    window.addEventListener('challenge-request', handleChallengeRequest)
+    return () => window.removeEventListener('challenge-request', handleChallengeRequest)
+  }, [])  
 
   useEffect(() => {
     const onReady = () => setLoading(false);
