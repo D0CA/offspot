@@ -241,17 +241,21 @@ io.on('connection', (socket) => {
   
 
   socket.on('start-challenge', ({ type, targetUsername }) => {
-    const challenger = socketIdToUsername[socket.id]
+    const challenger = socketIdToUsername[socket.id] // déjà lowerCase côté serveur
     const targetSocketId = usernameToSocketId[targetUsername.toLowerCase()]
-    if (!challenger || !targetSocketId || type !== 'morpion') return
+  
     console.log('[SERVER] start-challenge from', challenger, 'to', targetUsername)
+    console.log('[DEBUG] usernameToSocketId =', usernameToSocketId)
+    console.log('[DEBUG] targetUsername.toLowerCase() =', targetUsername.toLowerCase())
+    console.log('[DEBUG] targetSocketId =', targetSocketId)
+  
+    if (!challenger || !targetSocketId || type !== 'morpion') return
   
     io.to(targetSocketId).emit('challenge-request', {
       challenger,
       game: type
     })
   })
-  
 
   socket.on('morpion-move', ({ index }) => {
     const player = socket.id
