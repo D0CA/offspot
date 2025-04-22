@@ -85,6 +85,31 @@ export function setupSocketHandlers({
         player.level = level
         player.levelText.text = `Niv ${level}`
       }
-    }         
+    }
   })
+
+  socket.on('challenge-request', ({ challenger, game }) => {
+    window.dispatchEvent(new CustomEvent('challenge-request', {
+      detail: { challenger, game }
+    }))
+  })
+
+  socket.on('morpion-start', ({ opponent, isFirstPlayer }) => {
+    window.dispatchEvent(new CustomEvent('morpion-start', {
+      detail: { opponent, isFirstPlayer }
+    }))
+  })  
+  
+  socket.on('morpion-move', ({ index, symbol }) => {
+    window.dispatchEvent(new CustomEvent('morpion-move', {
+      detail: { index, symbol }
+    }))
+  })
+  
+  socket.on('morpion-end', ({ winner }) => {
+    window.dispatchEvent(new CustomEvent('morpion-end', {
+      detail: { winner }
+    }))
+  })
+  
 }

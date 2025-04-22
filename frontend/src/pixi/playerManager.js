@@ -232,6 +232,13 @@ export async function createOrUpdatePlayers(serverPlayers, localPlayers, stage, 
       container.playerData = localPlayers[id];
       container.zIndex = 10_000;
       stage.addChild(container);
+      if (!isLocal) {
+        container.eventMode = 'static'
+        container.cursor = 'pointer'
+        container.on('pointertap', () => {
+          window.dispatchEvent(new CustomEvent('show-player-card', { detail: data }))
+        })
+      }      
     } else {
       const p = localPlayers[id];
       p.tileX = data.x;

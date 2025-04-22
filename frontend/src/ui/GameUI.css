@@ -180,8 +180,6 @@
   .logout-button { padding: 8px 12px; font-size: 0.75rem; }
 }
 
-/* Après les définitions existantes, par exemple à la fin du fichier */
-
 .stats button {
   /* pour que le bouton garde son dimensionnement existant autour de l'icône */
   display: inline-flex;
@@ -193,7 +191,7 @@
 .btn-icon {
   width: 24px;
   height: 24px;
-  pointer-events: none; /* laisser le clic remonter au <button> */
+  pointer-events: none;
 }
 
 

@@ -1,4 +1,3 @@
-// src/components/GameScene.jsx
 import React, { useState, useEffect } from 'react';
 import GameUI from '../ui/GameUI';
 import VideoScreen from '../ui/VideoScreen';
@@ -6,7 +5,10 @@ import LoadingScreen from '../ui/LoadingScreen';
 import { usePlayer } from '../context/PlayerContext';
 import { usePixiGame } from '../hooks/usePixiGame';
 import { mapConfig } from '../constants/mapConfig';
-import { SPEED } from '../constants/gameConstants';
+import { SPEED } from '../constants/gamesConfig';
+import PlayerCard from '../ui/PlayerCard';
+import MorpionModal from '../games/morpion/MorpionModal';
+import ChallengePrompt from '../ui/ChallengePrompt';
 
 export default function GameScene() {
   const [playerCount, setPlayerCount] = useState(0);
@@ -21,8 +23,41 @@ export default function GameScene() {
     setPlayerCount,
     updateMyXP
   );
+  const [selectedPlayer, setSelectedPlayer] = useState(null);
+  const [activeGame, setActiveGame] = useState(null); // { game: 'morpion', opponent, isFirstPlayer }
+  const [challengePrompt, setChallengePrompt] = useState(null);
 
-  // Dès que PIXI a fini de charger les assets (map, background, emotes…), on masque le loader
+  useEffect(() => {
+    const handleShowCard = (e) => setSelectedPlayer(e.detail);
+    const handleStartMorpion = (e) => {
+      const { opponent, isFirstPlayer } = e.detail ?? {};
+      setActiveGame({ game: 'morpion', opponent, isFirstPlayer });
+    };
+
+    window.addEventListener('show-player-card', handleShowCard);
+    window.addEventListener('morpion-start', handleStartMorpion);
+
+    return () => {
+      window.removeEventListener('show-player-card', handleShowCard);
+      window.removeEventListener('morpion-start', handleStartMorpion);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!socket.current) return;
+
+    const handleChallengeRequest = (e) => {
+      const { challenger, game } = e.detail;
+      console.log('[CLIENT] challenge-request reçu', challenger, game);
+      setChallengePrompt({ challenger, game });
+    };
+
+    window.addEventListener('challenge-request', handleChallengeRequest);
+    return () => {
+      window.removeEventListener('challenge-request', handleChallengeRequest);
+    };
+  }, [socket]);
+
   useEffect(() => {
     const onReady = () => setLoading(false);
     window.addEventListener('pixi-ready', onReady);
@@ -33,10 +68,8 @@ export default function GameScene() {
 
   return (
     <>
-      {/* on passe loading au loader, il disparaîtra en fondu */}
       <LoadingScreen loading={loading} />
 
-      {/* PIXI Canvas */}
       <div
         ref={pixiContainer}
         style={{
@@ -49,7 +82,6 @@ export default function GameScene() {
         }}
       />
 
-      {/* Interface React */}
       <GameUI
         key={`ui-${myXP}-${myLevel}`}
         avatar={user.avatar}
@@ -58,8 +90,46 @@ export default function GameScene() {
         onLogout={logout}
       />
 
-      {/* Vidéo (derrière le canvas) */}
       <VideoScreen cameraRef={cameraRef} />
+
+      {selectedPlayer && (
+        <PlayerCard
+          player={selectedPlayer}
+          onClose={() => setSelectedPlayer(null)}
+          onChallenge={(type) => {
+            socket.current.emit('start-challenge', {
+              type,
+              targetUsername: selectedPlayer.username,
+            });
+            setSelectedPlayer(null);
+          }}
+        />
+      )}
+
+      {activeGame?.game === 'morpion' && (
+        <MorpionModal
+          me={user.username}
+          opponent={activeGame.opponent}
+          socket={socket.current}
+          isFirstPlayer={activeGame.isFirstPlayer}
+          onClose={() => setActiveGame(null)}
+        />
+      )}
+
+      {challengePrompt && (
+        <ChallengePrompt
+          challenger={challengePrompt.challenger}
+          game={challengePrompt.game}
+          onAccept={() => {
+            socket.current.emit('challenge-accept', {
+              challenger: challengePrompt.challenger,
+              game: challengePrompt.game,
+            });
+            setChallengePrompt(null);
+          }}
+          onDecline={() => setChallengePrompt(null)}
+        />
+      )}
     </>
   );
 }

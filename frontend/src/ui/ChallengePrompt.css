@@ -1,0 +1,65 @@
+.challenge-prompt {
+    position: fixed;
+    bottom: 20px;
+    left: 20px;
+    background: #1e1e1e;
+    border: 2px solid #ffae51;
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
+    color: white;
+    z-index: 14000;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+    font-family: 'Poppins', sans-serif;
+    animation: fadeIn 0.3s ease-in-out;
+  }
+  
+  .challenge-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .challenge-box p {
+    margin: 0 0 0.6rem 0;
+    font-size: 0.95rem;
+    text-align: center;
+  }
+  
+  .challenge-buttons {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .challenge-buttons .accept,
+  .challenge-buttons .decline {
+    font-size: 1.2rem;
+    font-weight: bold;
+    border: none;
+    width: 2.2rem;
+    height: 2.2rem;
+    border-radius: 50%;
+    cursor: pointer;
+    color: white;
+  }
+  
+  .challenge-buttons .accept {
+    background-color: #4caf50;
+  }
+  
+  .challenge-buttons .decline {
+    background-color: #f44336;
+  }
+  
+  .challenge-buttons .accept:hover {
+    background-color: #66bb6a;
+  }
+  
+  .challenge-buttons .decline:hover {
+    background-color: #ef5350;
+  }
+  
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  

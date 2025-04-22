@@ -1,0 +1,94 @@
+.morpion-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+  
+  .morpion-box {
+    background: #1e1e1e;
+    border: 2px solid #ffae51;
+    border-radius: 12px;
+    padding: 1.5rem;
+    width: 300px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+    text-align: center;
+    color: white;
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  .morpion-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: bold;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+  }
+  
+  .morpion-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-bottom: 1rem;
+  }
+  
+  .cell {
+    width: 70px;
+    height: 70px;
+    font-size: 2rem;
+    font-weight: bold;
+    background: #2a2a2a;
+    color: #ffae51;
+    border: 1px solid #555;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  
+  .cell:hover {
+    background: #3a3a3a;
+  }
+  
+  .morpion-winner {
+    font-size: 1.1rem;
+    margin-bottom: 0.8rem;
+    color: #ffd86b;
+  }
+  
+  .morpion-actions {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  
+  .morpion-actions button {
+    flex: 1;
+    background: #ffae51;
+    color: black;
+    border: none;
+    padding: 0.5rem;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  
+  .morpion-actions button:hover {
+    background: #ffc877;
+  }
+
+  .turn-indicator {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #ffae51;
+    margin-bottom: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }  
+  
