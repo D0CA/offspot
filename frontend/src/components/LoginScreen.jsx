@@ -7,7 +7,7 @@ const backendURL = getBackendURL()
 
 const twitchAuthUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${twitchClientId}&redirect_uri=${encodeURIComponent(
   `${backendURL}/auth/twitch/callback`
-)}&response_type=code&scope=chat:read+chat:edit&force_verify=true`
+)}&response_type=code&force_verify=true`
 
 console.log('backendURL (detected):', backendURL)
 
