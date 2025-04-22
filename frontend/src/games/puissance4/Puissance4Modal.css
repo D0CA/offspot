@@ -94,23 +94,26 @@
   }
 }
 
-.morpion-actions {
+/* Styles pour les boutons d'action à la fin de la partie */
+.p4-actions {
   margin-top: 1rem;
   display: flex;
   gap: 10px;
 }
 
-.morpion-actions button {
-  background: #222;
-  color: white;
-  border: 1px solid #555;
+.p4-actions button {
+  flex: 1;
+  background: #ffcc00;
+  color: black;
+  border: none;
+  padding: 0.5rem 1rem;
+  font-weight: bold;
   border-radius: 6px;
-  padding: 0.4rem 0.8rem;
   cursor: pointer;
   font-family: 'Poppins', sans-serif;
   transition: background 0.2s ease;
 }
 
-.morpion-actions button:hover {
-  background: #333;
+.p4-actions button:hover {
+  background: #ffd94d;
 }

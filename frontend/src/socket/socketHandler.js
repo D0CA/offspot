@@ -1,109 +1,109 @@
-import * as PIXI from 'pixi.js'
-import { createOrUpdatePlayers } from '../pixi/playerManager'
-import { displayChatBubble } from '../pixi/chatBubbles'
-import { computeLevelFromXP } from '../utils/leveling'
-import { mapConfig } from '../constants/mapConfig'
+// frontend/src/socket/socketHandler.js
 
+import * as PIXI from 'pixi.js';
+import { createOrUpdatePlayers } from '../pixi/playerManager';
+import { displayChatBubble } from '../pixi/chatBubbles';
+import { mapConfig } from '../constants/mapConfig';
+
+/**
+ * Configure tous les handlers Socket.IO et dispatch des événements pour le jeu.
+ * @param {object} params
+ * @param {import('socket.io-client').Socket} params.socket
+ * @param {PIXI.Application} params.app
+ * @param {object} params.playersRef - Ref React stockant les joueurs locaux
+ * @param {PIXI.Container} params.stage
+ * @param {object} params.user - Infos utilisateur (username, avatar, etc.)
+ * @param {function(number):void} params.setPlayerCount
+ * @param {function(number):void} params.updateMyXP
+ */
 export function setupSocketHandlers({ socket, app, playersRef, stage, user, setPlayerCount, updateMyXP }) {
   function handlePlayerUpdate(serverPlayers) {
-    if (!socket.id) {
-      console.warn('[socketHandler] ⚠️ socket.id est undefined')
-      return
-    }
+    if (!socket.id) return;
+    const liveLevels = {};
+    const myKey = user.username.toLowerCase();
+    if (playersRef.current[myKey]) liveLevels[myKey] = playersRef.current[myKey].level;
 
-    const liveLevels = {}
-    const myKey = user.username.toLowerCase()
-    if (myKey && playersRef.current[myKey]) {
-      liveLevels[myKey] = playersRef.current[myKey].level
-    }
-
-    const bgSprite = app.stage.children.find(c =>
-      c instanceof PIXI.Sprite && c.texture?.baseTexture?.resource?.url === mapConfig.backgroundUrl)
-    const scale = (bgSprite?.scale?.x > 0) ? bgSprite.scale.x : 1
-
-    createOrUpdatePlayers(serverPlayers, playersRef.current, stage, user.username.toLowerCase(), liveLevels, scale)
-    setPlayerCount(Object.keys(serverPlayers).length)
+    // Met à jour ou crée les sprites joueurs
+    createOrUpdatePlayers(serverPlayers, playersRef.current, stage, myKey, liveLevels, app.stage.scale.x || 1);
+    setPlayerCount(Object.keys(serverPlayers).length);
   }
 
-  // Attente de pixi prêt
+  // On attend que PIXI soit prêt avant d'attacher les handlers
   window.addEventListener('pixi-ready', () => {
+    // === SYNC JOUEURS ===
+    socket.off('update-players', handlePlayerUpdate);
+    socket.on('update-players', handlePlayerUpdate);
 
-    socket.off('update-players', handlePlayerUpdate)
-    socket.on('update-players', handlePlayerUpdate)
+    socket.off('player-data');
+    socket.on('player-data', data => updateMyXP(data.xp || 0));
 
-    socket.on('player-data', (data) => {
-      updateMyXP(data.xp || 0)
-    })
-
-    socket.on('chat-message', ({ socketId, username, message, xpGained, level, totalXP, currentXP, requiredXP }) => {
-      const player = Object.values(playersRef.current).find(p => p.username?.toLowerCase() === username?.toLowerCase())
-      if (!player) {
-        console.warn('[chat-message] Aucun joueur trouvé pour', username)
-        return
-      }
-
-      displayChatBubble({ player, message, app })
-
-      if (player.username.toLowerCase() === user.username.toLowerCase()) {
-        updateMyXP(totalXP)
-      }
-
+    socket.off('chat-message');
+    socket.on('chat-message', ({ username, message, xpGained, level, totalXP }) => {
+      const player = Object.values(playersRef.current)
+        .find(p => p.username.toLowerCase() === username.toLowerCase());
+      if (!player) return;
+      displayChatBubble({ player, message, app });
+      if (player.username.toLowerCase() === user.username.toLowerCase()) updateMyXP(totalXP);
       if (player.levelText) {
-        player.level = level
-        player.levelText.text = `Niv ${level}`
+        player.level = level;
+        player.levelText.text = `Niv ${level}`;
       }
-    })
+    });
 
-    // === EVENTS GÉNÉRIQUES POUR LES JEUX ===
-    socket.on('morpion-start', ({ opponent, isFirstPlayer }) => {
-      window.dispatchEvent(new CustomEvent('morpion-start', {
-        detail: { opponent, isFirstPlayer }
-      }))
-    })
-
-    socket.on('morpion-move', ({ index, symbol }) => {
-      window.dispatchEvent(new CustomEvent('morpion-move', {
-        detail: { index, symbol }
-      }))
-    })
-
-    socket.on('morpion-end', ({ winner }) => {
-      window.dispatchEvent(new CustomEvent('morpion-end', {
-        detail: { winner }
-      }))
-    })
-
+    // === EVENTS DE JEU ===
+    socket.off('challenge-request');
     socket.on('challenge-request', ({ challenger, game }) => {
-      window.dispatchEvent(new CustomEvent('challenge-request', {
-        detail: { challenger, game }
-      }))
-    })
+      window.dispatchEvent(new CustomEvent('challenge-request', { detail: { challenger, game } }));
+    });
 
+    socket.off('morpion-start');
+    socket.on('morpion-start', ({ opponent, isFirstPlayer }) => {
+      window.dispatchEvent(new CustomEvent('morpion-start', { detail: { opponent, isFirstPlayer } }));
+    });
+    socket.off('morpion-move');
+    socket.on('morpion-move', ({ index, symbol }) => {
+      window.dispatchEvent(new CustomEvent('morpion-move', { detail: { index, symbol } }));
+    });
+    socket.off('morpion-end');
+    socket.on('morpion-end', ({ winner }) => {
+      window.dispatchEvent(new CustomEvent('morpion-end', { detail: { winner } }));
+    });
+    socket.off('morpion-rematch-progress');
+    socket.on('morpion-rematch-progress', ({ count }) => {
+      window.dispatchEvent(new CustomEvent('morpion-rematch-progress', { detail: { count } }));
+    });
+    socket.off('morpion-rematch-confirmed');
+    socket.on('morpion-rematch-confirmed', ({ from, starts }) => {
+      window.dispatchEvent(new CustomEvent('morpion-rematch-confirmed', { detail: { from, starts } }));
+    });
+    socket.off('morpion-close');
+    socket.on('morpion-close', ({ from }) => {
+      window.dispatchEvent(new CustomEvent('morpion-close', { detail: { from } }));
+    });
+
+    socket.off('puissance4-start');
     socket.on('puissance4-start', ({ opponent, isFirstPlayer }) => {
-      console.log('[SOCKET] puissance4-start reçu')
-      window.dispatchEvent(new CustomEvent('puissance4-start', {
-        detail: { opponent, isFirstPlayer }
-      }))
-    })
-    
+      window.dispatchEvent(new CustomEvent('puissance4-start', { detail: { opponent, isFirstPlayer } }));
+    });
+    socket.off('puissance4-move');
     socket.on('puissance4-move', ({ column, row, symbol }) => {
-      setGrid(prev => {
-        const updated = prev.map(r => [...r])
-        updated[row][column] = symbol
-        return updated
-      })
-    
-      if (symbol !== myColor) {
-        setMyTurn(true)
-      } else {
-        setMyTurn(false) // 👈 important pour désactiver ton tour si c'est pas à toi
-      }
-    })
-
+      window.dispatchEvent(new CustomEvent('puissance4-move', { detail: { column, row, symbol } }));
+    });
+    socket.off('puissance4-end');
     socket.on('puissance4-end', ({ winner }) => {
-      setWinner(winner)
-      setMyTurn(false)
-    })
-    
-  })
+      window.dispatchEvent(new CustomEvent('puissance4-end', { detail: { winner } }));
+    });
+    socket.off('puissance4-rematch-progress');
+    socket.on('puissance4-rematch-progress', ({ count }) => {
+      window.dispatchEvent(new CustomEvent('puissance4-rematch-progress', { detail: { count } }));
+    });
+    socket.off('puissance4-rematch-confirmed');
+    socket.on('puissance4-rematch-confirmed', ({ from, starts }) => {
+      window.dispatchEvent(new CustomEvent('puissance4-rematch-confirmed', { detail: { from, starts } }));
+    });
+    socket.off('puissance4-close');
+    socket.on('puissance4-close', ({ from }) => {
+      window.dispatchEvent(new CustomEvent('puissance4-close', { detail: { from } }));
+    });
+  });
 }
