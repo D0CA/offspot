@@ -92,6 +92,49 @@ function playNextVideo() {
 
 io.on('connection', (socket) => {
   console.log('✅ Connecté:', socket.id)
+  socket.on('recover-session', ({ username }) => {
+    const key = username.toLowerCase();
+    // Mettre à jour les mappages
+    socketIdToUsername[socket.id] = key;
+    usernameToSocketId[key] = socket.id;
+
+    // Pour chaque partie active, remplacer l’ancien socket.id par le nouveau
+    for (const [gameKey, game] of activeGames.entries()) {
+      const idx = game.sockets.findIndex(oldSid => socketIdToUsername[oldSid] === key);
+      if (idx !== -1) {
+        const oldSid = game.sockets[idx];
+        game.sockets[idx] = socket.id;
+        game.players[socket.id] = game.players[oldSid];
+        delete game.players[oldSid];
+      }
+      if (game.sockets.includes(socket.id)) {
+        const otherSid = game.sockets.find(sid => sid !== socket.id);
+        const opponent = socketIdToUsername[otherSid];
+        // On renvoie l'état en fonction du type
+        if (game.type === 'morpion') {
+          socket.emit('morpion-state', {
+            opponent,
+            grid: game.grid,
+            players: {
+              [username]: game.players[socket.id],
+              [opponent]: game.players[otherSid]
+            },
+            isMyTurn: game.turn === socket.id
+          });
+        } else if (game.type === 'puissance4') {
+          socket.emit('puissance4-state', {
+            opponent,
+            grid: game.grid,
+            players: {
+              [username]: game.players[socket.id],
+              [opponent]: game.players[otherSid]
+            },
+            isMyTurn: game.turn === socket.id
+          });
+        }
+      }
+    }
+  });
 
   socket.on('new-player', async (data) => {
     const { username, avatar, id } = data
@@ -212,11 +255,29 @@ io.on('connection', (socket) => {
   })
 
   socket.on('disconnect', () => {
-    const key = socketIdToUsername[socket.id]
-    delete players[key]
-    delete socketIdToUsername[socket.id]
-    io.emit('update-players', players)
-  })
+    // 1) On prévient l’adversaire que le joueur a quitté
+    for (const [gameKey, game] of activeGames.entries()) {
+      if (game.sockets.includes(socket.id)) {
+        const otherSid = game.sockets.find(sid => sid !== socket.id);
+        if (otherSid) {
+          // type vaut 'morpion' ou 'puissance4' selon le jeu
+          const type = game.type || 'morpion';
+          io.to(otherSid).emit(`${type}-close`, {
+            from: socketIdToUsername[socket.id]
+          });
+        }
+        // on supprime la partie
+        activeGames.delete(gameKey);
+      }
+    }
+  
+    // 2) On nettoie le joueur de la liste générale
+    const key = socketIdToUsername[socket.id];
+    delete players[key];
+    delete socketIdToUsername[socket.id];
+    io.emit('update-players', players);
+  });
+  
 
   socket.on('remove-player', () => {
     const key = socketIdToUsername[socket.id]

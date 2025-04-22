@@ -78,14 +78,7 @@ function checkWinner(grid, symbol) {
  * @param {Object} usernameToSocketId - username → socket.id.
  * @param {Map<string, string[]>} rematchQueue - File des rematchs.
  */
-function handlePuissance4Sockets(
-  io,
-  socket,
-  activeGames,
-  socketIdToUsername,
-  usernameToSocketId,
-  rematchQueue
-) {
+function handlePuissance4Sockets(io, socket, activeGames, socketIdToUsername, usernameToSocketId, rematchQueue) {
   socket.on('challenge-accept', ({ challenger, game }) => {
     if (game !== 'puissance4') return;
     const challenged = socketIdToUsername[socket.id];
@@ -101,7 +94,16 @@ function handlePuissance4Sockets(
     };
     const grid = Array(6).fill(null).map(() => Array(7).fill(null));
 
-    activeGames.set(gameKey, { sockets, players, grid, moves: 0, turn: firstStarts ? challengerSocketId : socket.id });
+    // on ajoute type et turn
+    activeGames.set(gameKey, {
+      sockets,
+      players,
+      grid,
+      moves: 0,
+      turn: firstStarts ? challengerSocketId : socket.id,
+      type: 'puissance4'
+    });
+
     io.to(challengerSocketId).emit('puissance4-start', { opponent: challenged, isFirstPlayer: firstStarts });
     io.to(socket.id).emit('puissance4-start', { opponent: challenger, isFirstPlayer: !firstStarts });
   });
