@@ -48,6 +48,12 @@ export default function VideoScreen({ cameraRef }) {
     }
   }, [cameraRef])
 
+  useEffect(() => {
+    if (iframeRef.current) {
+      iframeRef.current.style.pointerEvents = 'none';
+    }
+  }, [style]);  
+
   // 📡 Socket : sync + play/clear
   useEffect(() => {
     const s = socket.current

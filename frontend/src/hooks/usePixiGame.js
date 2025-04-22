@@ -212,6 +212,14 @@ export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerC
     // Socket handlers
     setupSocketHandlers({ socket: socket.current, app, playersRef: localRef, stage: cameraRef.current, user, setPlayerCount, updateMyXP });
 
+    // Empêche la perte d'interaction au retour d'onglet
+    window.addEventListener('focus', () => {
+      canvas.focus();
+      canvas.style.pointerEvents = 'auto';
+      canvas.tabIndex = -1;
+      canvas.style.outline = 'none';
+    });
+
     return () => {
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('pixi-ready', handleResize);
