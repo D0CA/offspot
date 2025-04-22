@@ -8,6 +8,7 @@ export default function VideoScreen({ cameraRef }) {
   const [embedSrc, setEmbedSrc] = useState(null)
   const [player,   setPlayer]   = useState(null)
   const iframeRef = useRef(null)
+  const [videoVisible, setVideoVisible] = useState(true);
 
   // Sync state
   const [serverVideoStartTime, setServerVideoStartTime] = useState(0)
@@ -47,6 +48,19 @@ export default function VideoScreen({ cameraRef }) {
       window.removeEventListener('pixi-ready', updateStyle)
     }
   }, [cameraRef])
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        setVideoVisible(false);
+      } else {
+        setTimeout(() => setVideoVisible(true), 100);
+      }
+    }
+  
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);  
 
   useEffect(() => {
     if (iframeRef.current) {
@@ -155,21 +169,20 @@ export default function VideoScreen({ cameraRef }) {
 
   return (
     <>
-      {embedSrc && (
-        <div style={style}>
-          <iframe
-            ref={iframeRef}
-            width="100%"
-            height="100%"
-            src={embedSrc}
-            title="Cinema Screen"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowFullScreen
-          />
-        </div>
-      )}
-
+    {embedSrc && videoVisible && (
+      <div style={style}>
+        <iframe
+          ref={iframeRef}
+          width="100%"
+          height="100%"
+          src={embedSrc}
+          title="Cinema Screen"
+          frameBorder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowFullScreen
+        />
+      </div>
+    )}
       <VideoControls player={player} />
     </>
   )
