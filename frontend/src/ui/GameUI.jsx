@@ -84,8 +84,15 @@ export default function GameUI({ avatar, username, playerCount, onLogout }) {
           onClick={onLogout}
           aria-label="Se déconnecter"
         >
-          Déconnexion
+          <img src="/ui/logout.png" alt="" className="btn-icon" />
         </button>
+      <button
+       className="reload-button"
+       onClick={() => window.location.reload()}
+       aria-label="Recharger la scène"
+      >
+       <img src="/ui/reload.png" alt="" className="btn-icon" />
+     </button>
       </div>
     </div>
   )

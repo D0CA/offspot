@@ -179,3 +179,38 @@
   .xp-labels, .level { font-size: 0.75rem; }
   .logout-button { padding: 8px 12px; font-size: 0.75rem; }
 }
+
+/* Après les définitions existantes, par exemple à la fin du fichier */
+
+.stats button {
+  /* pour que le bouton garde son dimensionnement existant autour de l'icône */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px; /* tu peux ajuster */
+}
+
+.btn-icon {
+  width: 24px;
+  height: 24px;
+  pointer-events: none; /* laisser le clic remonter au <button> */
+}
+
+
+.reload-button {
+  background: linear-gradient(45deg, #3498db, #2980b9);
+  border: none;
+  color: white;
+  padding: 12px 16px;
+  font-size: clamp(0.75rem, 1.5vw, 1rem);
+  border-radius: 8px;
+  margin-left: 8px;
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  pointer-events: all;
+}
+
+.reload-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
