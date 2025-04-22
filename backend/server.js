@@ -1,3 +1,4 @@
+// backend/server.js
 require('dotenv').config()
 const express = require('express')
 const cors = require('cors')
@@ -8,6 +9,9 @@ const tmi = require('tmi.js')
 const { doc, setDoc, getDoc, updateDoc } = require('firebase/firestore')
 const { db } = require('./firebase')
 const mapConfig = require('./mapConfigServer')
+const { computeLevel } = require('./utils/leveling')
+const { handlePuissance4Sockets } = require('./games/puissance4')
+const { handleMorpionSockets } = require('./games/morpion')
 
 const app = express()
 app.use(cors())
@@ -91,19 +95,18 @@ io.on('connection', (socket) => {
 
   socket.on('new-player', async (data) => {
     const { username, avatar, id } = data
-  
+
     const isValidUsername = typeof username === 'string' && /^[a-zA-Z0-9_]{3,20}$/.test(username)
     const isValidAvatar = typeof avatar === 'string' && avatar.startsWith('https://')
     const isValidId = typeof id === 'string' && id.length > 2
-  
+
     if (!isValidUsername || !isValidAvatar || !isValidId) {
       console.warn('[🚨] Données utilisateur invalides reçues de', socket.id, data)
       socket.disconnect()
       return
     }
-  
-    const key = username.toLowerCase()
 
+    const key = username.toLowerCase()
     const userRef = doc(db, 'players', key)
     const docSnap = await getDoc(userRef)
 
@@ -114,15 +117,7 @@ io.on('connection', (socket) => {
       await setDoc(userRef, { xp: 0, avatar, username: key })
     }
 
-    let level = 1
-    let requiredXP = 100
-    let remainingXP = xp
-
-    while (remainingXP >= requiredXP) {
-      remainingXP -= requiredXP
-      level++
-      requiredXP = 100 + (level - 1) * 20
-    }
+    const { level, requiredXP, currentXP } = computeLevel(xp)
 
     const playerData = {
       x: mapConfig.spawn.x,
@@ -163,22 +158,18 @@ io.on('connection', (socket) => {
       const match = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]{11})/)
       return !!match && match[1].length === 11
     }
-  
+
     if (!url || typeof url !== 'string') return
     if (!isValidYouTubeUrl(url)) return
-  
+
     const videoData = { url, username: username || 'Anonyme' }
-  
-    // 🔁 éviter les doublons
     if (videoQueue.some(v => v.url === url)) return
-  
     videoQueue.push(videoData)
-  
     io.emit('video-queue', videoQueue)
-  
+
     if (!currentVideo) playNextVideo()
   })
-  
+
   socket.on('get-video-queue', () => {
     socket.emit('video-queue', videoQueue)
   })
@@ -196,197 +187,31 @@ io.on('connection', (socket) => {
     }
   })
 
-  // Ping‑pong pour synchronisation vidéo
   socket.on('video-sync-request', ({ clientSendTime }) => {
     socket.emit('video-sync-response', {
-      clientSendTime,                      // renvoyé tel quel au client
-      serverTime:       Date.now(),        // l’heure serveur à l’instant de la requête
-      serverVideoStartTime: videoStartTime // la même valeur que dans play-video
-    });
-  });  
-
-  socket.on('challenge-accept', ({ challenger, game }) => {
-    const challenged = socketIdToUsername[socket.id]
-    const challengerSocketId = usernameToSocketId[challenger.toLowerCase()]
-    const challengedSocketId = socket.id
-  
-    if (!challengerSocketId || !challenged) return
-  
-    const key = [challengerSocketId, challengedSocketId].sort().join(':')
-  
-    if (game === 'morpion') {
-      const firstStarts = Math.random() < 0.5
-  
-      activeGames.set(key, {
-        sockets: [challengerSocketId, challengedSocketId],
-        players: {
-          [challengerSocketId]: firstStarts ? 'X' : 'O',
-          [challengedSocketId]: firstStarts ? 'O' : 'X'
-        },
-        grid: Array(9).fill(null),
-        moves: 0
-      })
-  
-      io.to(challengerSocketId).emit('morpion-start', {
-        opponent: challenged,
-        isFirstPlayer: firstStarts
-      })
-  
-      io.to(challengedSocketId).emit('morpion-start', {
-        opponent: challenger,
-        isFirstPlayer: !firstStarts
-      })
-    }
+      clientSendTime,
+      serverTime: Date.now(),
+      serverVideoStartTime: videoStartTime
+    })
   })
-  
 
   socket.on('start-challenge', ({ type, targetUsername }) => {
-    const challenger = socketIdToUsername[socket.id] // déjà lowerCase côté serveur
+    const challenger = socketIdToUsername[socket.id]
     const targetSocketId = usernameToSocketId[targetUsername.toLowerCase()]
-  
     if (!challenger || !targetSocketId) return
-  
-    io.to(targetSocketId).emit('challenge-request', {
-      challenger,
-      game: type
-    })
+    io.to(targetSocketId).emit('challenge-request', { challenger, game: type })
   })
 
-  socket.on('morpion-move', ({ index }) => {
-    const player = socket.id
-    const opponent = Object.keys(socketIdToUsername).find(sid => sid !== player && activeGames.has([sid, player].sort().join(':')))
-    if (!opponent) return
-  
-    const key = [player, opponent].sort().join(':')
-    const game = activeGames.get(key)
-    if (!game || game.grid[index]) return
-  
-    const symbol = game.players[player]
-    game.grid[index] = symbol
-    game.moves = (game.moves || 0) + 1
-  
-    game.sockets.forEach(sid => {
-      io.to(sid).emit('morpion-move', { index, symbol })
-    })
-  
-    const g = game.grid
-    const winningCombos = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]]
-    let winnerSymbol = null
-  
-    for (const [a, b, c] of winningCombos) {
-      if (g[a] && g[a] === g[b] && g[a] === g[c]) {
-        winnerSymbol = g[a]
-        break
-      }
-    }
-  
-    const isDraw = !winnerSymbol && game.grid.every(cell => cell !== null)
-  
-    if (winnerSymbol || isDraw) {
-      let winnerSocketId = null
-  
-      if (winnerSymbol) {
-        winnerSocketId = Object.entries(game.players).find(([sid, sym]) => sym === winnerSymbol)?.[0] || null
-      }
-  
-      const winnerName = winnerSymbol ? socketIdToUsername[winnerSocketId] : null
-  
-      game.sockets.forEach(sid => {
-        io.to(sid).emit('morpion-end', { winner: winnerSymbol ? winnerName : null })
-      })
-  
-      activeGames.delete(key)
-    }
-  })
-  
-
-const rematchStatus = new Map()
-
-socket.on('morpion-rematch-request', ({ opponent }) => {
-  const from = socketIdToUsername[socket.id]
-  const toSocketId = usernameToSocketId[opponent.toLowerCase()]
-  const rematchKey = [from, opponent.toLowerCase()].sort().join(':')
-
-  if (!rematchQueue.has(rematchKey)) {
-    rematchQueue.set(rematchKey, [from])
-  } else {
-    const existing = rematchQueue.get(rematchKey)
-    if (!existing.includes(from)) {
-      rematchQueue.set(rematchKey, [...existing, from])
-    }
-  }
-
-  const current = rematchQueue.get(rematchKey)
-
-  // Notify both players with the updated count
-  const involvedUsernames = [from, opponent.toLowerCase()]
-  involvedUsernames.forEach(username => {
-    const sid = usernameToSocketId[username]
-    if (sid) {
-      io.to(sid).emit('morpion-rematch-progress', { count: current.length })
-    }
-  })
-
-  if (current.length === 2) {
-    rematchQueue.delete(rematchKey)
-
-    const challenger = current[0]
-    const challenged = current[1]
-
-    const challengerSocket = usernameToSocketId[challenger.toLowerCase()]
-    const opponentSocket = usernameToSocketId[challenged.toLowerCase()]
-    const gameKey = [challengerSocket, opponentSocket].sort().join(':')
-    const firstStarts = Math.random() < 0.5
-
-    activeGames.set(gameKey, {
-      sockets: [challengerSocket, opponentSocket],
-      players: {
-        [challengerSocket]: firstStarts ? 'X' : 'O',
-        [opponentSocket]: firstStarts ? 'O' : 'X'
-      },
-      grid: Array(9).fill(null),
-      moves: 0
-    })
-
-    io.to(challengerSocket).emit('morpion-rematch-confirmed', {
-      from: challenged,
-      starts: firstStarts
-    })
-
-    io.to(opponentSocket).emit('morpion-rematch-confirmed', {
-      from: challenger,
-      starts: !firstStarts
-    })
-
-    io.to(challengerSocket).emit('morpion-start', {
-      opponent: challenged,
-      isFirstPlayer: firstStarts
-    })
-
-    io.to(opponentSocket).emit('morpion-start', {
-      opponent: challenger,
-      isFirstPlayer: !firstStarts
-    })
-  }
-})
-
-  socket.on('morpion-close', ({ opponent }) => {
-    const toSocketId = usernameToSocketId[opponent.toLowerCase()]
-    if (toSocketId) {
-      io.to(toSocketId).emit('morpion-close', { from: socketIdToUsername[socket.id] })
-    }
-  }) 
-
-  const { handlePuissance4Sockets } = require('./games/puissance4')
-  handlePuissance4Sockets(io, activeGames, socketIdToUsername, usernameToSocketId)
+  handleMorpionSockets(io, activeGames, rematchQueue, socketIdToUsername, usernameToSocketId, socket)
+  handlePuissance4Sockets(io, activeGames, socketIdToUsername, usernameToSocketId, socket)
 
   socket.on('puissance4-close', ({ opponent }) => {
     const toSocketId = usernameToSocketId[opponent.toLowerCase()]
     if (toSocketId) {
       io.to(toSocketId).emit('puissance4-close', { from: socketIdToUsername[socket.id] })
     }
-  })  
-  
+  })
+
   socket.on('disconnect', () => {
     const key = socketIdToUsername[socket.id]
     delete players[key]
@@ -418,9 +243,7 @@ twitchClient.on('message', async (channel, tags, message, self) => {
   const key = username.toLowerCase()
   const userID = tags['user-id']
 
-  if (!players[key]) {
-    return
-  }
+  if (!players[key]) return
 
   if (!messageHistory[userID]) messageHistory[userID] = []
   const history = messageHistory[userID]
@@ -448,19 +271,7 @@ twitchClient.on('message', async (channel, tags, message, self) => {
     if (docSnap.exists()) totalXP = docSnap.data().xp || 0
   }
 
-  let level = 1
-  let xpToNextLevel = 100
-  let xpForCurrentLevel = xpToNextLevel
-  let remaining = totalXP
-
-  while (remaining >= xpToNextLevel) {
-    remaining -= xpToNextLevel
-    level++
-    xpToNextLevel = 100 + (level - 1) * 20
-    xpForCurrentLevel = xpToNextLevel
-  }
-
-  const currentLevelXP = remaining
+  const { level, requiredXP: xpForCurrentLevel, currentXP: currentLevelXP } = computeLevel(totalXP)
 
   if (players[key]) {
     players[key].xp = totalXP
