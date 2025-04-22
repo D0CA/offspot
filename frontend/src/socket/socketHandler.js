@@ -79,6 +79,31 @@ export function setupSocketHandlers({ socket, app, playersRef, stage, user, setP
       }))
     })
 
-    // Ajoute ici des handlers futurs pour puissance4, pfc, etc.
+    socket.on('puissance4-start', ({ opponent, isFirstPlayer }) => {
+      console.log('[SOCKET] puissance4-start reçu')
+      window.dispatchEvent(new CustomEvent('puissance4-start', {
+        detail: { opponent, isFirstPlayer }
+      }))
+    })
+    
+    socket.on('puissance4-move', ({ column, row, symbol }) => {
+      setGrid(prev => {
+        const updated = prev.map(r => [...r])
+        updated[row][column] = symbol
+        return updated
+      })
+    
+      if (symbol !== myColor) {
+        setMyTurn(true)
+      } else {
+        setMyTurn(false) // 👈 important pour désactiver ton tour si c'est pas à toi
+      }
+    })
+
+    socket.on('puissance4-end', ({ winner }) => {
+      setWinner(winner)
+      setMyTurn(false)
+    })
+    
   })
 }

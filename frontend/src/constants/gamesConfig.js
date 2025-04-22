@@ -5,6 +5,11 @@ export const GAMES = {
     name: 'Morpion',
     icon: '✖️⭕',
     component: 'MorpionModal'
+  },
+  puissance4: {
+    name: 'Puissance 4',
+    icon: '🔴🟡',
+    component: 'Puissance4Modal'
   }
 };
   

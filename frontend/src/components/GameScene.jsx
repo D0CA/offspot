@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom'
+import { createPortal } from 'react-dom';
 import GameUI from '../ui/GameUI';
 import VideoScreen from '../ui/VideoScreen';
 import LoadingScreen from '../ui/LoadingScreen';
@@ -9,6 +9,7 @@ import { mapConfig } from '../constants/mapConfig';
 import { SPEED } from '../constants/gamesConfig';
 import PlayerCard from '../ui/PlayerCard';
 import MorpionModal from '../games/morpion/MorpionModal';
+import Puissance4Modal from '../games/puissance4/Puissance4Modal';
 import ChallengePrompt from '../ui/ChallengePrompt';
 
 export default function GameScene() {
@@ -25,7 +26,7 @@ export default function GameScene() {
     updateMyXP
   );
   const [selectedPlayer, setSelectedPlayer] = useState(null);
-  const [activeGame, setActiveGame] = useState(null); // { game: 'morpion', opponent, isFirstPlayer }
+  const [activeGame, setActiveGame] = useState(null);
   const [challengePrompt, setChallengePrompt] = useState(null);
 
   useEffect(() => {
@@ -34,25 +35,30 @@ export default function GameScene() {
       const { opponent, isFirstPlayer } = e.detail ?? {};
       setActiveGame({ game: 'morpion', opponent, isFirstPlayer });
     };
+    const handleStartPuissance4 = (e) => {
+      const { opponent, isFirstPlayer } = e.detail ?? {};
+      setActiveGame({ game: 'puissance4', opponent, isFirstPlayer });
+    };
 
     window.addEventListener('show-player-card', handleShowCard);
     window.addEventListener('morpion-start', handleStartMorpion);
+    window.addEventListener('puissance4-start', handleStartPuissance4);
 
     return () => {
       window.removeEventListener('show-player-card', handleShowCard);
       window.removeEventListener('morpion-start', handleStartMorpion);
+      window.removeEventListener('puissance4-start', handleStartPuissance4);
     };
   }, []);
 
   useEffect(() => {
     const handleChallengeRequest = (e) => {
-      const { challenger, game } = e.detail
-      setChallengePrompt({ challenger, game })
-    }
-  
-    window.addEventListener('challenge-request', handleChallengeRequest)
-    return () => window.removeEventListener('challenge-request', handleChallengeRequest)
-  }, [])  
+      const { challenger, game } = e.detail;
+      setChallengePrompt({ challenger, game });
+    };
+    window.addEventListener('challenge-request', handleChallengeRequest);
+    return () => window.removeEventListener('challenge-request', handleChallengeRequest);
+  }, []);
 
   useEffect(() => {
     const onReady = () => setLoading(false);
@@ -73,14 +79,12 @@ export default function GameScene() {
               socket.current.emit('challenge-accept', {
                 challenger: challengePrompt.challenger,
                 game: challengePrompt.game,
-              })
-              setChallengePrompt(null)
+              });
+              setChallengePrompt(null);
             }}
             onDecline={() => setChallengePrompt(null)}
-          />,
-          document.getElementById('ui-overlay') || document.body
-        )
-      }
+          />, document.getElementById('ui-overlay') || document.body
+        )}
 
       <LoadingScreen loading={loading} />
 
@@ -126,6 +130,16 @@ export default function GameScene() {
           opponent={activeGame.opponent}
           socket={socket.current}
           isFirstPlayer={activeGame.isFirstPlayer}
+          onClose={() => setActiveGame(null)}
+        />
+      )}
+
+      {activeGame?.game === 'puissance4' && (
+        <Puissance4Modal
+          me={user.username}
+          opponent={activeGame.opponent}
+          isFirstPlayer={activeGame.isFirstPlayer}
+          socket={socket.current}
           onClose={() => setActiveGame(null)}
         />
       )}

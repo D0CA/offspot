@@ -1,0 +1,116 @@
+.p4-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999999;
+  font-family: 'Poppins', sans-serif;
+}
+
+.p4-box {
+  background: #1c1c1c;
+  padding: 1rem;
+  border-radius: 12px;
+  border: 2px solid #ffcc00;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 90vw;
+}
+
+.p4-header {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.p4-turn {
+  color: #ccc;
+  margin-bottom: 1rem;
+}
+
+.p4-grid {
+  display: grid;
+  grid-template-rows: repeat(6, 50px);
+  grid-template-columns: repeat(7, 50px);
+  gap: 5px;
+  background: #004080;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+.p4-row {
+  display: contents;
+}
+
+.p4-cell {
+  width: 50px;
+  height: 50px;
+  background-color: #ffffff22;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+  cursor: pointer;
+  user-select: none;
+  color: white;
+  transition: transform 0.2s ease-in-out;
+  overflow: hidden;
+}
+
+.p4-cell.red {
+  background-color: red;
+  animation: dropPiece 0.3s ease-out;
+}
+
+.p4-cell.yellow {
+  background-color: gold;
+  animation: dropPiece 0.3s ease-out;
+}
+
+.p4-cell.preview {
+  background-color: #8884; /* gris transparent */
+  outline: 2px dashed white;
+}
+
+@keyframes dropPiece {
+  0% {
+    transform: translateY(-100px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.morpion-actions {
+  margin-top: 1rem;
+  display: flex;
+  gap: 10px;
+}
+
+.morpion-actions button {
+  background: #222;
+  color: white;
+  border: 1px solid #555;
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  font-family: 'Poppins', sans-serif;
+  transition: background 0.2s ease;
+}
+
+.morpion-actions button:hover {
+  background: #333;
+}

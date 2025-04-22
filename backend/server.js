@@ -244,7 +244,7 @@ io.on('connection', (socket) => {
     const challenger = socketIdToUsername[socket.id] // déjà lowerCase côté serveur
     const targetSocketId = usernameToSocketId[targetUsername.toLowerCase()]
   
-    if (!challenger || !targetSocketId || type !== 'morpion') return
+    if (!challenger || !targetSocketId) return
   
     io.to(targetSocketId).emit('challenge-request', {
       challenger,
@@ -376,6 +376,16 @@ socket.on('morpion-rematch-request', ({ opponent }) => {
       io.to(toSocketId).emit('morpion-close', { from: socketIdToUsername[socket.id] })
     }
   }) 
+
+  const { handlePuissance4Sockets } = require('./games/puissance4')
+  handlePuissance4Sockets(io, activeGames, socketIdToUsername, usernameToSocketId)
+
+  socket.on('puissance4-close', ({ opponent }) => {
+    const toSocketId = usernameToSocketId[opponent.toLowerCase()]
+    if (toSocketId) {
+      io.to(toSocketId).emit('puissance4-close', { from: socketIdToUsername[socket.id] })
+    }
+  })  
   
   socket.on('disconnect', () => {
     const key = socketIdToUsername[socket.id]
