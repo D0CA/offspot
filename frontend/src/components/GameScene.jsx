@@ -68,6 +68,21 @@ export default function GameScene() {
 
   return (
     <>
+      {challengePrompt && (
+        <ChallengePrompt
+          challenger={challengePrompt.challenger}
+          game={challengePrompt.game}
+          onAccept={() => {
+            socket.current.emit('challenge-accept', {
+              challenger: challengePrompt.challenger,
+              game: challengePrompt.game,
+            });
+            setChallengePrompt(null);
+          }}
+          onDecline={() => setChallengePrompt(null)}
+        />
+      )}
+
       <LoadingScreen loading={loading} />
 
       <div
@@ -113,21 +128,6 @@ export default function GameScene() {
           socket={socket.current}
           isFirstPlayer={activeGame.isFirstPlayer}
           onClose={() => setActiveGame(null)}
-        />
-      )}
-
-      {challengePrompt && (
-        <ChallengePrompt
-          challenger={challengePrompt.challenger}
-          game={challengePrompt.game}
-          onAccept={() => {
-            socket.current.emit('challenge-accept', {
-              challenger: challengePrompt.challenger,
-              game: challengePrompt.game,
-            });
-            setChallengePrompt(null);
-          }}
-          onDecline={() => setChallengePrompt(null)}
         />
       )}
     </>
