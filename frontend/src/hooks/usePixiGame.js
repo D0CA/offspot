@@ -102,6 +102,12 @@ export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerC
         bg.zIndex = -100;
         cameraRef.current?.addChild(bg);
         window.dispatchEvent(new Event('pixi-ready'));
+        setTimeout(() => {
+          if (!window._pixiReadyDispatched) {
+            window.dispatchEvent(new Event('pixi-ready'))
+            window._pixiReadyDispatched = true
+          }          
+        }, 3000)        
       } catch (err) {
         console.error('[PIXI] background load error', err);
       }
