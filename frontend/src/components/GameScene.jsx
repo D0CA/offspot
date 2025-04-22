@@ -4,20 +4,19 @@ import GameUI from '../ui/GameUI';
 import VideoScreen from '../ui/VideoScreen';
 import LoadingScreen from '../ui/LoadingScreen';
 import { usePlayer } from '../context/PlayerContext';
-import Inventory from '../components/Inventory'
 import { usePixiGame } from '../hooks/usePixiGame';
 import { mapConfig } from '../constants/mapConfig';
 import { SPEED } from '../constants/gamesConfig';
 import PlayerCard from '../ui/PlayerCard';
 import MorpionModal from '../games/morpion/MorpionModal';
 import Puissance4Modal from '../games/puissance4/Puissance4Modal';
+import TypingRaceModal from '../games/typingRace/TypingRaceModal';
 import ChallengePrompt from '../ui/ChallengePrompt';
 
 export default function GameScene() {
   const [playerCount, setPlayerCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  // On ajoute showInventory
-  const { user, myXP, myLevel, logout, updateMyXP, socket, playersRef, showInventory } = usePlayer();
+  const { user, myXP, myLevel, logout, updateMyXP, socket, playersRef } = usePlayer();
   const { pixiContainer, cameraRef } = usePixiGame(
     mapConfig,
     SPEED,
@@ -31,28 +30,42 @@ export default function GameScene() {
   const [activeGame, setActiveGame] = useState(null);
   const [challengePrompt, setChallengePrompt] = useState(null);
 
+  // Handle start events for all games
   useEffect(() => {
     const handleShowCard = (e) => setSelectedPlayer(e.detail);
-    const handleStartMorpion = (e) => {
-      const { opponent, isFirstPlayer } = e.detail ?? {};
-      setActiveGame({ game: 'morpion', opponent, isFirstPlayer });
-    };
-    const handleStartPuissance4 = (e) => {
-      const { opponent, isFirstPlayer } = e.detail ?? {};
-      setActiveGame({ game: 'puissance4', opponent, isFirstPlayer });
-    };
+    const handleStartMorpion = (e) =>
+      setActiveGame({
+        game: 'morpion',
+        opponent: e.detail.opponent,
+        isFirstPlayer: e.detail.isFirstPlayer,
+      });
+    const handleStartPuissance4 = (e) =>
+      setActiveGame({
+        game: 'puissance4',
+        opponent: e.detail.opponent,
+        isFirstPlayer: e.detail.isFirstPlayer,
+      });
+    const handleStartTyping = (e) =>
+      setActiveGame({
+        game: 'typingRace',
+        opponent: e.detail.opponent,
+        text: e.detail.text,
+      });
 
     window.addEventListener('show-player-card', handleShowCard);
     window.addEventListener('morpion-start', handleStartMorpion);
     window.addEventListener('puissance4-start', handleStartPuissance4);
+    window.addEventListener('typingRace-start', handleStartTyping);
 
     return () => {
       window.removeEventListener('show-player-card', handleShowCard);
       window.removeEventListener('morpion-start', handleStartMorpion);
       window.removeEventListener('puissance4-start', handleStartPuissance4);
+      window.removeEventListener('typingRace-start', handleStartTyping);
     };
   }, []);
 
+  // Challenge prompt
   useEffect(() => {
     const handleChallengeRequest = (e) => {
       const { challenger, game } = e.detail;
@@ -62,6 +75,7 @@ export default function GameScene() {
     return () => window.removeEventListener('challenge-request', handleChallengeRequest);
   }, []);
 
+  // Pixi ready
   useEffect(() => {
     const onReady = () => setLoading(false);
     window.addEventListener('pixi-ready', onReady);
@@ -85,23 +99,15 @@ export default function GameScene() {
               setChallengePrompt(null);
             }}
             onDecline={() => setChallengePrompt(null)}
-          />, document.getElementById('ui-overlay') || document.body
+          />, 
+          document.getElementById('ui-overlay') || document.body
         )}
 
-      {showInventory && <Inventory />}
-      
       <LoadingScreen loading={loading} />
 
       <div
         ref={pixiContainer}
-        style={{
-          width: '100vw',
-          height: '100vh',
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          zIndex: 2,
-        }}
+        style={{ width: '100vw', height: '100vh', position: 'absolute', top: 0, left: 0, zIndex: 2 }}
       />
 
       <GameUI
@@ -128,6 +134,7 @@ export default function GameScene() {
         />
       )}
 
+      {/* Game Modals */}
       {activeGame?.game === 'morpion' && (
         <MorpionModal
           me={user.username}
@@ -137,12 +144,20 @@ export default function GameScene() {
           onClose={() => setActiveGame(null)}
         />
       )}
-
       {activeGame?.game === 'puissance4' && (
         <Puissance4Modal
           me={user.username}
           opponent={activeGame.opponent}
+          socket={socket.current}
           isFirstPlayer={activeGame.isFirstPlayer}
+          onClose={() => setActiveGame(null)}
+        />
+      )}
+      {activeGame?.game === 'typingRace' && (
+        <TypingRaceModal
+          me={user.username}
+          opponent={activeGame.opponent}
+          text={activeGame.text}
           socket={socket.current}
           onClose={() => setActiveGame(null)}
         />

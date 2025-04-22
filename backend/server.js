@@ -12,6 +12,7 @@ const mapConfig = require('./mapConfigServer')
 const { computeLevel, getUnlocksForLevel } = require('./utils/leveling')
 const { handlePuissance4Sockets } = require('./games/puissance4')
 const { handleMorpionSockets } = require('./games/morpion')
+const { handleTypingRaceSockets } = require('./games/typingRace');
 
 const app = express()
 app.use(cors())
@@ -250,6 +251,7 @@ io.on('connection', (socket) => {
 
   handleMorpionSockets(io, activeGames, rematchQueue, socketIdToUsername, usernameToSocketId, socket);
   handlePuissance4Sockets(io, socket, activeGames, socketIdToUsername, usernameToSocketId, rematchQueue);
+  handleTypingRaceSockets(io, socket, activeGames, socketIdToUsername, usernameToSocketId);
 
   socket.on('puissance4-close', ({ opponent }) => {
     const toSocketId = usernameToSocketId[opponent.toLowerCase()]

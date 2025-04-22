@@ -37,32 +37,29 @@ export function setupSocketHandlers({ socket, app, playersRef, stage, user, setP
   }
 
   // === RECONNEXION AUTOMATIQUE ===
-  // Lorsque socket.io reconnecte
   socket.on('connect', () => {
     socket.emit('recover-session', { username: user.username });
   });
-  // Réception de l'état Morpion
+
   socket.on('morpion-state', (data) => {
     window.dispatchEvent(new CustomEvent('morpion-state', { detail: data }));
   });
-  // Réception de l'état Puissance4
   socket.on('puissance4-state', (data) => {
     window.dispatchEvent(new CustomEvent('puissance4-state', { detail: data }));
   });
 
-  // On attend que PIXI soit prêt avant d'attacher les autres handlers
   window.addEventListener('pixi-ready', () => {
-    // === SYNC JOUEURS ===
+    // === SYNC JOUEURS & CHAT ===
     socket.off('update-players', handlePlayerUpdate);
     socket.on('update-players', handlePlayerUpdate);
 
     socket.off('player-data');
-    socket.on('player-data', data => updateMyXP(data.xp || 0));
+    socket.on('player-data', (data) => updateMyXP(data.xp || 0));
 
     socket.off('chat-message');
-    socket.on('chat-message', ({ username, message, xpGained, level, totalXP }) => {
+    socket.on('chat-message', ({ username, message, totalXP, level }) => {
       const player = Object.values(playersRef.current).find(
-        p => p.username.toLowerCase() === username.toLowerCase()
+        (p) => p.username.toLowerCase() === username.toLowerCase()
       );
       if (!player) return;
       displayChatBubble({ player, message, app });
@@ -85,78 +82,72 @@ export function setupSocketHandlers({ socket, app, playersRef, stage, user, setP
 
     // Morpion
     socket.off('morpion-start');
-    socket.on('morpion-start', ({ opponent, isFirstPlayer }) => {
-      window.dispatchEvent(
-        new CustomEvent('morpion-start', { detail: { opponent, isFirstPlayer } })
-      );
-    });
+    socket.on('morpion-start', (detail) =>
+      window.dispatchEvent(new CustomEvent('morpion-start', { detail }))
+    );
     socket.off('morpion-move');
-    socket.on('morpion-move', ({ index, symbol }) => {
-      window.dispatchEvent(
-        new CustomEvent('morpion-move', { detail: { index, symbol } })
-      );
-    });
+    socket.on('morpion-move', (detail) =>
+      window.dispatchEvent(new CustomEvent('morpion-move', { detail }))
+    );
     socket.off('morpion-end');
-    socket.on('morpion-end', ({ winner }) => {
-      window.dispatchEvent(
-        new CustomEvent('morpion-end', { detail: { winner } })
-      );
-    });
+    socket.on('morpion-end', (detail) =>
+      window.dispatchEvent(new CustomEvent('morpion-end', { detail }))
+    );
     socket.off('morpion-rematch-progress');
-    socket.on('morpion-rematch-progress', ({ count }) => {
-      window.dispatchEvent(
-        new CustomEvent('morpion-rematch-progress', { detail: { count } })
-      );
-    });
+    socket.on('morpion-rematch-progress', (detail) =>
+      window.dispatchEvent(new CustomEvent('morpion-rematch-progress', { detail }))
+    );
     socket.off('morpion-rematch-confirmed');
-    socket.on('morpion-rematch-confirmed', ({ from, starts }) => {
-      window.dispatchEvent(
-        new CustomEvent('morpion-rematch-confirmed', { detail: { from, starts } })
-      );
-    });
+    socket.on('morpion-rematch-confirmed', (detail) =>
+      window.dispatchEvent(new CustomEvent('morpion-rematch-confirmed', { detail }))
+    );
     socket.off('morpion-close');
-    socket.on('morpion-close', ({ from }) => {
-      window.dispatchEvent(
-        new CustomEvent('morpion-close', { detail: { from } })
-      );
-    });
+    socket.on('morpion-close', (detail) =>
+      window.dispatchEvent(new CustomEvent('morpion-close', { detail }))
+    );
 
     // Puissance4
     socket.off('puissance4-start');
-    socket.on('puissance4-start', ({ opponent, isFirstPlayer }) => {
-      window.dispatchEvent(
-        new CustomEvent('puissance4-start', { detail: { opponent, isFirstPlayer } })
-      );
-    });
+    socket.on('puissance4-start', (detail) =>
+      window.dispatchEvent(new CustomEvent('puissance4-start', { detail }))
+    );
     socket.off('puissance4-move');
-    socket.on('puissance4-move', ({ column, row, symbol }) => {
-      window.dispatchEvent(
-        new CustomEvent('puissance4-move', { detail: { column, row, symbol } })
-      );
-    });
+    socket.on('puissance4-move', (detail) =>
+      window.dispatchEvent(new CustomEvent('puissance4-move', { detail }))
+    );
     socket.off('puissance4-end');
-    socket.on('puissance4-end', ({ winner }) => {
-      window.dispatchEvent(
-        new CustomEvent('puissance4-end', { detail: { winner } })
-      );
-    });
+    socket.on('puissance4-end', (detail) =>
+      window.dispatchEvent(new CustomEvent('puissance4-end', { detail }))
+    );
     socket.off('puissance4-rematch-progress');
-    socket.on('puissance4-rematch-progress', ({ count }) => {
-      window.dispatchEvent(
-        new CustomEvent('puissance4-rematch-progress', { detail: { count } })
-      );
-    });
+    socket.on('puissance4-rematch-progress', (detail) =>
+      window.dispatchEvent(new CustomEvent('puissance4-rematch-progress', { detail }))
+    );
     socket.off('puissance4-rematch-confirmed');
-    socket.on('puissance4-rematch-confirmed', ({ from, starts }) => {
-      window.dispatchEvent(
-        new CustomEvent('puissance4-rematch-confirmed', { detail: { from, starts } })
-      );
-    });
+    socket.on('puissance4-rematch-confirmed', (detail) =>
+      window.dispatchEvent(new CustomEvent('puissance4-rematch-confirmed', { detail }))
+    );
     socket.off('puissance4-close');
-    socket.on('puissance4-close', ({ from }) => {
-      window.dispatchEvent(
-        new CustomEvent('puissance4-close', { detail: { from } })
-      );
-    });
+    socket.on('puissance4-close', (detail) =>
+      window.dispatchEvent(new CustomEvent('puissance4-close', { detail }))
+    );
+
+    // Typing Race
+    socket.off('typingRace-start');
+    socket.on('typingRace-start', (detail) =>
+      window.dispatchEvent(new CustomEvent('typingRace-start', { detail }))
+    );
+    socket.off('typingRace-progress');
+    socket.on('typingRace-progress', (detail) =>
+      window.dispatchEvent(new CustomEvent('typingRace-progress', { detail }))
+    );
+    socket.off('typingRace-end');
+    socket.on('typingRace-end', (detail) =>
+      window.dispatchEvent(new CustomEvent('typingRace-end', { detail }))
+    );
+    socket.off('typingRace-close');
+    socket.on('typingRace-close', (detail) =>
+      window.dispatchEvent(new CustomEvent('typingRace-close', { detail }))
+    );
   });
 }
