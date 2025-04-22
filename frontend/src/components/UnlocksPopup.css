@@ -1,0 +1,26 @@
+.unlocks-popup {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 1000;
+  }
+  
+  .unlock-item {
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.5);
+  }
+  
+  /* Classes optionnelles pour varier le style selon le type */
+  .unlock-emote   { border-left: 4px solid #ffc107; }
+  .unlock-cosmetic{ border-left: 4px solid #e91e63; }
+  .unlock-effect  { border-left: 4px solid #03a9f4; }
+  .unlock-pet     { border-left: 4px solid #8bc34a; }
+  .unlock-chatBubble { border-left: 4px solid #9c27b0; }
+  

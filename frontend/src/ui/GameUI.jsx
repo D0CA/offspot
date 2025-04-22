@@ -4,11 +4,8 @@ import { usePlayer } from '../context/PlayerContext'
 
 export default function GameUI({ avatar, username, playerCount, onLogout }) {
   const {
-    myXP,
-    myLevel,
-    currentXP,
-    xpRequired,
-    playerVersion
+    myXP, myLevel, currentXP, xpRequired, playerVersion,
+    toggleInventory
   } = usePlayer()
 
   const xpBarRef = useRef(null)
@@ -77,22 +74,33 @@ export default function GameUI({ avatar, username, playerCount, onLogout }) {
 
       <div className="stats">
         <span className="player-count" aria-live="polite">
-          {playerCount} en ligne
+          {playerCount} <span className="circle">●</span>
         </span>
-        <button
-          className="logout-button"
-          onClick={onLogout}
-          aria-label="Se déconnecter"
-        >
-          <img src="/ui/logout.png" alt="" className="btn-icon" />
-        </button>
-      <button
-       className="reload-button"
-       onClick={() => window.location.reload()}
-       aria-label="Recharger la scène"
-      >
-       <img src="/ui/reload.png" alt="" className="btn-icon" />
-     </button>
+        <div className="controls">
+          <div className="button-group">
+            <button
+              className="logout-button"
+              onClick={onLogout}
+              aria-label="Se déconnecter"
+            >
+              <img src="/ui/logout.png" alt="" className="btn-icon" />
+            </button>
+            <button
+              className="reload-button"
+              onClick={() => window.location.reload()}
+              aria-label="Recharger la scène"
+            >
+              <img src="/ui/reload.png" alt="" className="btn-icon" />
+            </button>
+          </div>
+          <button
+            className="inventory-button"
+            onClick={toggleInventory}
+            aria-label="Ouvrir l’inventaire"
+          >
+              <img src="/ui/inventory.png" alt="" className="btn-icon" />
+          </button>
+        </div>
       </div>
     </div>
   )

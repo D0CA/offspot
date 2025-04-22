@@ -1,0 +1,91 @@
+/* Inventory.css - style de l'inventaire, conservant la DA existante */
+
+.inventory-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+  }
+  
+  .inventory-modal {
+    background: #1e1e1e;
+    border-radius: 16px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.6);
+    padding: 24px;
+    width: clamp(300px, 80vw, 600px);
+    color: #ffffff;
+    font-family: 'Poppins', sans-serif;
+    position: relative;
+  }
+  
+  .inventory-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    color: #ffffff;
+    cursor: pointer;
+  }
+  
+  .inventory-section + .inventory-section {
+    margin-top: 24px;
+  }
+  
+  .inventory-section h3 {
+    font-size: 1.25rem;
+    margin-bottom: 12px;
+    color: #f39c12;
+    text-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
+  }
+  
+  .inventory-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 12px;
+  }
+  
+  .inventory-item {
+    background: #2c3e50;
+    padding: 12px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  }
+  
+  .item-name {
+    margin-bottom: 8px;
+    text-transform: capitalize;
+    font-weight: 500;
+  }
+  
+  .item-equip-btn {
+    background: linear-gradient(45deg, #f39c12, #e74c3c);
+    border: none;
+    color: #ffffff;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+  }
+  
+  .item-equip-btn:disabled {
+    background: rgba(255, 255, 255, 0.3);
+    cursor: default;
+    opacity: 0.7;
+  }
+  
+  .item-equip-btn:not(:disabled):hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(231, 76, 60, 0.5);
+  }

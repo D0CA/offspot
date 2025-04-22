@@ -1,214 +1,120 @@
-/* src/ui/GameUI.css - Responsive with centered, fluid-width XP bar */
+/* GameUI.css – layout, icônes, couleurs, hover glow */
 
 .game-ui {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  padding: 8px 20px;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  color: white;
-  z-index: 10;
-  box-sizing: border-box;
-  font-family: 'Poppins', sans-serif;
-  pointer-events: none;
+  position: absolute; top: 0; left: 0;
+  width: 100%; padding: 8px 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  color: #fff; pointer-events: none; z-index: 10;
+  font-family: Poppins, sans-serif;
 }
-
-/* User info section adapts */
 .user-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  display: flex; align-items: center; gap: 12px;
   pointer-events: all;
 }
-
 .avatar {
-  width: 8vw;
-  max-width: 64px;
-  min-width: 40px;
-  height: auto;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 4px solid #ffffff;
-  box-shadow: 0 0 6px rgba(0, 0, 0, 0.5);
+  width: 8vw; max-width: 64px; min-width: 40px;
+  aspect-ratio: 1; border-radius: 50%; object-fit: cover;
+  border: 4px solid #fff; box-shadow: 0 0 6px rgba(0,0,0,0.5);
 }
-
-.username-block {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  text-shadow: 0 0 6px rgba(0, 0, 0, 0.6);
-}
-
+.username-block { text-shadow: 0 0 6px rgba(0,0,0,0.6); }
 .username {
   font-family: 'Cherry Bomb One', cursive;
-  font-size: clamp(1rem, 2.5vw, 1.5rem);
-  font-weight: bold;
-  margin-top: 4px;
-  color: #ffffff;
-  text-shadow: 0 0 4px rgba(0, 0, 0, 0.6);
+  font-size: clamp(1rem,2.5vw,1.5rem);
 }
-
-.level {
-  font-size: clamp(0.75rem, 1.5vw, 1rem);
-  color: #ff4369;
-}
-
-/* Centered XP bar at top with fluid width */
+.level { color: #ff4369; font-size: clamp(0.75rem,1.5vw,1rem); }
 .xp-bar-container {
   position: absolute;
+  top: 33%;
   left: 50%;
   transform: translateX(-50%);
   pointer-events: all;
-  /* fluid width: min 200px, ideal 50vw, max 450px */
   width: clamp(200px, 50vw, 450px);
 }
-
 .xp-bar {
-  background: #2c3e50;
-  height: 16px;
-  width: 100%;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+  background: #2c3e50; height: 16px; width: 100%;
+  border-radius: 12px; overflow: hidden;
+  box-shadow: 0 0 10px rgba(0,0,0,0.3);
 }
-
 .xp-fill {
-  height: 100%;
-  background: linear-gradient(135deg, #f39c12, #e74c3c, #ff1493, #ff6adf);
-  background-size: 800% 100%;
-  animation: rainbow 12s ease-in-out infinite;
-  transition: width 0.5s ease, transform 0.5s ease;
-  will-change: width, transform;
+  height: 100%; background: linear-gradient(135deg,#f39c12,#e74c3c,#ff1493,#ff6adf);
+  background-size: 800% 100%; animation: rainbow 12s infinite;
+  transition: width .5s ease;
 }
+.xp-labels { font-size: clamp(0.75rem,1.5vw,1rem); margin-top:6px; text-align:center; }
+.spacer { flex: 1; }
 
-.xp-labels {
-  font-size: clamp(0.75rem, 1.5vw, 1rem);
-  color: #ecf0f1;
-  margin-top: 6px;
-  text-align: center;
-}
-
-/* Spacer flexes */
-.spacer {
-  flex: 1;
-}
-
+/* Stats & buttons */
 .stats {
-  display: flex;
-  align-items: center;
-  gap: 16px;
+  display: flex; align-items: center;
   pointer-events: all;
 }
-
 .player-count {
-  font-size: clamp(1rem, 2vw, 1.125rem);
-  color: #e74c3c;
-  font-weight: bold;
+  margin-right: 16px;
+  font-size: clamp(1rem,2vw,1.125rem);
+  color: #f6f6f6; font-weight: bold;
 }
-
-.logout-button {
-  background: linear-gradient(45deg, #f39c12, #e74c3c, #ff6f61);
-  border: none;
-  color: white;
-  padding: 12px 16px;
-  font-size: clamp(0.75rem, 1.5vw, 1rem);
-  border-radius: 8px;
-  transition: transform 0.2s ease, box-shadow 0.3s ease, background-color 0.3s ease;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+.player-count .circle{
+  color: #09ff00; font-weight: bold;;
 }
-
-.logout-button:hover {
-  background: linear-gradient(45deg, #f1c40f, #ff7f50, #e74c3c);
-  transform: scale(1.05);
-  box-shadow: 0 6px 12px rgba(255, 99, 71, 0.5);
-}
-
-.logout-button:active {
-  transform: scale(1);
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
-}
-
-/* Level-up flash and rainbow unchanged */
-.xp-bar.flash {
-  animation: flashGlow 1s ease-out;
-  box-shadow: 0 0 20px 8px rgba(255, 255, 255, 0.5);
-}
-.xp-fill.rainbow {
-  animation: rainbow 12s ease-in-out infinite;
-}
-
-@keyframes rainbow {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-@keyframes flashGlow {
-  0% { box-shadow: 0 0 0px 0px rgba(255, 255, 255, 0); transform: scale(1); }
-  50% { box-shadow: 0 0 30px 15px rgba(255, 255, 255, 0.8); transform: scale(1.1); }
-  100% { box-shadow: 0 0 0px 0px rgba(255, 255, 255, 0); transform: scale(1); }
-}
-
-/* Responsive breakpoints */
-@media (max-width: 768px) {
-  .game-ui {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 8px;
-  }
-  .user-info {
-    width: 100%;
-    justify-content: flex-start;
-    gap: 8px;
-  }
-  .stats {
-    width: 100%;
-    justify-content: space-between;
-    margin-top: 8px;
-  }
-}
-
-@media (max-width: 480px) {
-  .avatar { max-width: 48px; min-width: 32px; }
-  .username { font-size: 1rem; }
-  .xp-labels, .level { font-size: 0.75rem; }
-  .logout-button { padding: 8px 12px; font-size: 0.75rem; }
-}
-
-.stats button {
-  /* pour que le bouton garde son dimensionnement existant autour de l'icône */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px; /* tu peux ajuster */
-}
-
-.btn-icon {
-  width: 24px;
-  height: 24px;
-  pointer-events: none;
-}
-
-
-.reload-button {
-  background: linear-gradient(45deg, #3498db, #2980b9);
-  border: none;
-  color: white;
-  padding: 12px 16px;
-  font-size: clamp(0.75rem, 1.5vw, 1rem);
-  border-radius: 8px;
-  margin-left: 8px;
-  transition: transform 0.2s ease, box-shadow 0.3s ease;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+.stats .controls {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
   pointer-events: all;
+  width: fit-content;
 }
+.stats .button-group { display: inline-flex; gap: 16px; }
 
+.logout-button,
+.reload-button {
+  width: 40px; height: 40px; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  border: none; border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: transform .2s, box-shadow .3s;
+}
+.logout-button {
+  background: linear-gradient(45deg,#f39c12,#e74c3c,#ff6f61);
+}
+.logout-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 8px rgba(243,156,18,0.8);
+}
+.reload-button {
+  background: linear-gradient(45deg,#3498db,#2980b9);
+}
 .reload-button:hover {
   transform: scale(1.05);
-  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 0 8px rgba(52,152,219,0.8);
+}
+
+.inventory-button {
+  width: 100%;
+  height: 40px;
+  padding: 0;
+  background: linear-gradient(45deg,#2ecc71,#27ae60);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 8px;
+  transition: transform .2s, box-shadow .3s;
+  margin-top: 0;
+}
+.inventory-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 8px rgba(46,204,113,0.8);
+}
+.inventory-button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 8px rgba(46,204,113,0.8);
+}
+
+.btn-icon { width: 24px; height: 24px; }
+
+@keyframes rainbow {
+  0%{background-position:0% 50%}
+  50%{background-position:100% 50%}
+  100%{background-position:0% 50%}
 }

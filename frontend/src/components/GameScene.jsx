@@ -4,6 +4,7 @@ import GameUI from '../ui/GameUI';
 import VideoScreen from '../ui/VideoScreen';
 import LoadingScreen from '../ui/LoadingScreen';
 import { usePlayer } from '../context/PlayerContext';
+import Inventory from '../components/Inventory'
 import { usePixiGame } from '../hooks/usePixiGame';
 import { mapConfig } from '../constants/mapConfig';
 import { SPEED } from '../constants/gamesConfig';
@@ -15,7 +16,8 @@ import ChallengePrompt from '../ui/ChallengePrompt';
 export default function GameScene() {
   const [playerCount, setPlayerCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const { user, myXP, myLevel, logout, updateMyXP, socket, playersRef } = usePlayer();
+  // On ajoute showInventory
+  const { user, myXP, myLevel, logout, updateMyXP, socket, playersRef, showInventory } = usePlayer();
   const { pixiContainer, cameraRef } = usePixiGame(
     mapConfig,
     SPEED,
@@ -86,6 +88,8 @@ export default function GameScene() {
           />, document.getElementById('ui-overlay') || document.body
         )}
 
+      {showInventory && <Inventory />}
+      
       <LoadingScreen loading={loading} />
 
       <div

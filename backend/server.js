@@ -6,10 +6,10 @@ const axios = require('axios')
 const { Server } = require('socket.io')
 const http = require('http')
 const tmi = require('tmi.js')
-const { doc, setDoc, getDoc, updateDoc } = require('firebase/firestore')
+const { doc, setDoc, getDoc, updateDoc, arrayUnion } = require('firebase/firestore')
 const { db } = require('./firebase')
 const mapConfig = require('./mapConfigServer')
-const { computeLevel } = require('./utils/leveling')
+const { computeLevel, getUnlocksForLevel } = require('./utils/leveling')
 const { handlePuissance4Sockets } = require('./games/puissance4')
 const { handleMorpionSockets } = require('./games/morpion')
 
@@ -160,6 +160,9 @@ io.on('connection', (socket) => {
       await setDoc(userRef, { xp: 0, avatar, username: key })
     }
 
+    // Récupère les unlocks déjà débloqués en base
+    const existingUnlocks = docSnap.exists() ? docSnap.data().unlocks || [] : []
+
     const { level, requiredXP, currentXP } = computeLevel(xp)
 
     const playerData = {
@@ -170,7 +173,8 @@ io.on('connection', (socket) => {
       id,
       xp,
       level,
-      requiredXP
+      requiredXP,
+      unlocks: existingUnlocks
     }
 
     players[key] = playerData
@@ -315,6 +319,7 @@ twitchClient.on('message', async (channel, tags, message, self) => {
   const userRef = doc(db, 'players', key)
   let xpGained = 0
   let totalXP = 0
+  let previousLevel = players[key].level || 1
 
   const docSnap = await getDoc(userRef)
   if (isOriginal) {
@@ -332,6 +337,17 @@ twitchClient.on('message', async (channel, tags, message, self) => {
   }
 
   const { level, requiredXP: xpForCurrentLevel, currentXP: currentLevelXP } = computeLevel(totalXP)
+
+  if (level > previousLevel) {
+    const unlocks = getUnlocksForLevel(level)
+    const sid = usernameToSocketId[key]
+    if (sid && unlocks.length) {
+      // 1) Enregistre en base les nouveaux unlocks (sans doublons)
+      await updateDoc(userRef, { unlocks: arrayUnion(...unlocks) })
+      // 2) Notifie le client
+      io.to(sid).emit('levelUpUnlock', { level, unlocks })
+    }
+  }  
 
   if (players[key]) {
     players[key].xp = totalXP
