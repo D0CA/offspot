@@ -108,7 +108,7 @@ function createArmaturesForPlayer(id, data, container, anims) {
   return isSpawning;
 }
 
-function createPlayerContainer(data, id, scale) {
+function createPlayerContainer(data, id, scale, isLocalPlayer) {
   const container = new PIXI.Container();
   container.sortableChildren = true;
 
@@ -123,9 +123,12 @@ function createPlayerContainer(data, id, scale) {
   const anims = {};
   const isSpawning = createArmaturesForPlayer(id, data, container, anims);
 
+  const mainColor = isLocalPlayer ? '#ffae51' : 'white';
+  const outlineColor = isLocalPlayer ? 'white' : null;
+
   const nameText = new PIXI.Text(data.username, {
     fontSize: 20 * PLAYER_SCALE,
-    fill: 'white',
+    fill: mainColor,
     fontWeight: 'bold',
     fontFamily: 'Cherry Bomb One',
     resolution: 2,
@@ -133,28 +136,32 @@ function createPlayerContainer(data, id, scale) {
   nameText.anchor.set(0.5, -0.5);
   nameText.y = 80;
 
-  const strokeContainer = new PIXI.Container();
-  const offsets = [
-    [-1, 0], [1, 0], [0, -1], [0, 1],
-    [-1, -1], [1, -1], [-1, 1], [1, 1],
-  ];
+  if (isLocalPlayer && outlineColor) {
+    const strokeContainer = new PIXI.Container();
+    const offsets = [
+      [-1, 0], [1, 0], [0, -1], [0, 1],
+      [-1, -1], [1, -1], [-1, 1], [1, 1],
+    ];
 
-  offsets.forEach(([dx, dy]) => {
-    const outline = new PIXI.Text(data.username, {
-      fontSize: 20 * PLAYER_SCALE,
-      fill: '#ffae51',
-      fontWeight: 'bold',
-      fontFamily: 'Cherry Bomb One',
-      resolution: 2,
+    offsets.forEach(([dx, dy]) => {
+      const outline = new PIXI.Text(data.username, {
+        fontSize: 20 * PLAYER_SCALE,
+        fill: outlineColor,
+        fontWeight: 'bold',
+        fontFamily: 'Cherry Bomb One',
+        resolution: 2,
+      });
+      outline.anchor.set(0.5, -0.5);
+      outline.x = dx;
+      outline.y = nameText.y + dy;
+      strokeContainer.addChild(outline);
     });
-    outline.anchor.set(0.5, -0.5);
-    outline.x = dx;
-    outline.y = nameText.y + dy;
-    strokeContainer.addChild(outline);
-  });
 
-  strokeContainer.addChild(nameText);
-  container.addChild(strokeContainer);
+    strokeContainer.addChild(nameText);
+    container.addChild(strokeContainer);
+  } else {
+    container.addChild(nameText);
+  }
 
   const levelText = new PIXI.Text(`Niv ${data.level || 1}`, {
     fontSize: 14 * PLAYER_SCALE,
@@ -196,7 +203,8 @@ export async function createOrUpdatePlayers(serverPlayers, localPlayers, stage, 
     const data = serverPlayers[id];
 
     if (!localPlayers[id]) {
-      const { container, anims, nameText, levelText, isSpawning } = createPlayerContainer(data, id, scale);
+      const isLocal = id === socketId;
+      const { container, anims, nameText, levelText, isSpawning } = createPlayerContainer(data, id, scale, isLocal);
 
       localPlayers[id] = {
         username: data.username,
