@@ -27,7 +27,6 @@ export function setupSocketHandlers({ socket, app, playersRef, stage, user, setP
 
   // Attente de pixi prêt
   window.addEventListener('pixi-ready', () => {
-    console.log('[SOCKET HANDLER] Socket listeners being attached after pixi-ready')
 
     socket.off('update-players', handlePlayerUpdate)
     socket.on('update-players', handlePlayerUpdate)
@@ -57,7 +56,6 @@ export function setupSocketHandlers({ socket, app, playersRef, stage, user, setP
 
     // === EVENTS GÉNÉRIQUES POUR LES JEUX ===
     socket.on('morpion-start', ({ opponent, isFirstPlayer }) => {
-      console.log('[SOCKET] morpion-start reçu')
       window.dispatchEvent(new CustomEvent('morpion-start', {
         detail: { opponent, isFirstPlayer }
       }))
@@ -70,14 +68,12 @@ export function setupSocketHandlers({ socket, app, playersRef, stage, user, setP
     })
 
     socket.on('morpion-end', ({ winner }) => {
-      console.log('[SOCKET] morpion-end reçu')
       window.dispatchEvent(new CustomEvent('morpion-end', {
         detail: { winner }
       }))
     })
 
     socket.on('challenge-request', ({ challenger, game }) => {
-      console.log('[SOCKET HANDLER] challenge-request reçu', challenger, game)
       window.dispatchEvent(new CustomEvent('challenge-request', {
         detail: { challenger, game }
       }))
