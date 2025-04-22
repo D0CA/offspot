@@ -67,6 +67,8 @@ export default function GameScene() {
 
   if (!user) return null;
 
+  console.log('[RENDER] GameScene challengePrompt =', challengePrompt)
+
   return (
     <>
       {challengePrompt &&
