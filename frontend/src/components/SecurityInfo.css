@@ -15,16 +15,24 @@
   }  
   
   .security-toggle {
-    width: 100%;
-    background: transparent;
+    margin: 0 auto 12px auto;
+    display: block;
+    background: rgba(255, 255, 255, 0.08);
     border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
     color: #ffffff;
-    font-weight: bold;
     font-size: 16px;
-    text-align: left;
+    font-weight: 600;
     cursor: pointer;
-    padding: 8px 0;
+    transition: background 0.2s ease;
+    text-align: center;
   }
+  
+  .security-toggle:hover {
+    background: rgba(255, 255, 255, 0.15);
+  }
+  
   
   .security-details h3 {
     margin-top: 12px;
