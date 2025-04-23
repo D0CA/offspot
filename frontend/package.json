@@ -9,7 +9,11 @@
     },
     "dependencies": {
         "@md5crypt/dragonbones-pixi": "^5.8.1",
+        "@pixi/filter-bloom": "^5.1.1",
+        "@pixi/filter-color-matrix": "^7.4.3",
         "@pixi/filter-drop-shadow": "^5.2.0",
+        "@pixi/filter-glitch": "^5.1.1",
+        "@pixi/filter-rgb-split": "^5.1.1",
         "pixi.js": "^7.2.4",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",

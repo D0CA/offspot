@@ -1,6 +1,7 @@
 import React from 'react'
 import './LoginScreen.css'
 import { getBackendURL } from '../utils/env'
+import SecurityInfo from './SecurityInfo'
 
 const twitchClientId = import.meta.env.VITE_TWITCH_CLIENT_ID
 const backendURL = getBackendURL()
@@ -20,6 +21,7 @@ export default function LoginScreen() {
       <a href={twitchAuthUrl} className="login-button">
         🎬 Se connecter avec Twitch
       </a>
+      <SecurityInfo />
     </div>
   )
 }

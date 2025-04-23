@@ -38,7 +38,7 @@ const BOT_OAUTH = process.env.BOT_OAUTH
 
 // === TWITCH AUTH ===
 app.get('/auth/twitch', (req, res) => {
-  const twitchAuthUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code&scope=user:read:email`
+  const twitchAuthUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`
   res.redirect(twitchAuthUrl)
 })
 
