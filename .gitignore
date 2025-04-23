@@ -20,3 +20,4 @@ backend/.env.local
 # System files
 .DS_Store
 .env*
+**/.env*
