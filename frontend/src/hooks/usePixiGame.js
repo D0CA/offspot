@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import * as PIXI from 'pixi.js';
-import { clamp, computeLocalCoords } from '../utils/mathUtils';
+import { clamp, computeLocalCoords, clampCameraToMap } from '../utils/mathUtils';
 import { debounce } from '../utils/debounce';
 import { setupSocketHandlers } from '../socket/socketHandler';
 import { load7TVEmotes } from '../utils/7tv';
