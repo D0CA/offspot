@@ -13,17 +13,18 @@ export default function VideoScreen({ cameraRef }) {
   const [serverVideoStartTime, setServerVideoStartTime] = useState(0)
   const [clockOffset,           setClockOffset]           = useState(0)
 
-  // 🎯 Positionnement dynamique du lecteur vidéo
+  // 🎯 Positionnement dynamique du lecteur vidéo (dans le trou exact)
   const [style, setStyle] = useState({})
   useEffect(() => {
     function updateStyle() {
       if (!cameraRef.current) return
 
       const scale = cameraRef.current.scale.x || 1
-      const screenPos = cameraRef.current.toGlobal({ x: 1010, y: 680 })
+      // On remonte un peu le y pour corriger l'alignement
+      const screenPos = cameraRef.current.toGlobal({ x: 1315, y: 700 })
 
-      const videoWidth  = (1940 - 1010) * scale
-      const videoHeight = (1120 - 680) * scale
+      const videoWidth  = (2200 - 1315) * scale
+      const videoHeight = (1350 - 910) * scale
 
       setStyle({
         position:      'absolute',
@@ -33,6 +34,7 @@ export default function VideoScreen({ cameraRef }) {
         height:        `${videoHeight}px`,
         zIndex:        0,
         pointerEvents: 'none',
+        overflow:      'hidden',
       })
     }
 
@@ -61,7 +63,6 @@ export default function VideoScreen({ cameraRef }) {
 
     let syncInterval = null
 
-    // 1) handle server response to sync
     function handleSync({ clientSendTime, serverTime, serverVideoStartTime }) {
       const t1 = Date.now()
       const rtt = t1 - clientSendTime
@@ -71,7 +72,6 @@ export default function VideoScreen({ cameraRef }) {
       setClockOffset(Date.now() - correctedServerTime)
       setServerVideoStartTime(serverVideoStartTime)
 
-      // if player ready, seek
       if (player && typeof player.seekTo === 'function') {
         const seekPos = (correctedServerTime - serverVideoStartTime) / 1000
         player.seekTo(seekPos, true)
@@ -79,20 +79,16 @@ export default function VideoScreen({ cameraRef }) {
     }
     s.on('video-sync-response', handleSync)
 
-    // 2) when video starts
     const handlePlay = ({ url, startTime }) => {
       const match = url.match(/(?:v=|youtu\.be\/)([\w-]{11})/)
       if (!match) return
       const videoId = match[1]
 
-      // build embed URL (start param removed; we'll control via seek)
       setEmbedSrc(`https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&playsinline=1&rel=0&disablekb=1&fs=0&enablejsapi=1&origin=${window.location.origin}`)
 
-      // immediate ping-pong
       const t0 = Date.now()
       s.emit('video-sync-request', { clientSendTime: t0 })
 
-      // periodic re-sync
       if (syncInterval) clearInterval(syncInterval)
       syncInterval = setInterval(() => {
         const t = Date.now()
@@ -120,7 +116,6 @@ export default function VideoScreen({ cameraRef }) {
     }
   }, [socket.current, player])
 
-  // 🎬 Initialisation du lecteur YouTube & capture player
   useEffect(() => {
     if (!embedSrc || !iframeRef.current) return
 
