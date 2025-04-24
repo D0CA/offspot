@@ -1,3 +1,5 @@
+// usePixiGame.js - Zoom direct au spawn sans animation, sans delay foireux
+
 import { useEffect, useRef } from 'react';
 import * as PIXI from 'pixi.js';
 import { clamp, computeLocalCoords } from '../utils/mathUtils';
@@ -5,19 +7,14 @@ import { debounce } from '../utils/debounce';
 import { setupSocketHandlers } from '../socket/socketHandler';
 import { load7TVEmotes } from '../utils/7tv';
 
-/**
- * Hook that sets up the PIXI game scene and returns refs.
- */
 export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerCount, updateMyXP) {
   const pixiContainer = useRef(null);
   const cameraRef = useRef(null);
 
   useEffect(() => {
     if (!pixiContainer.current || !user || !socket.current) return;
-    // Clear existing canvas
     pixiContainer.current.innerHTML = '';
 
-    // Create PIXI application
     const app = new PIXI.Application({
       backgroundAlpha: 0,
       transparent: true,
@@ -28,14 +25,12 @@ export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerC
     });
     pixiContainer.current.appendChild(app.view);
 
-    // Reference to canvas and drag state variables
     const canvas = app.view;
     let isDragging = false;
     let dragMoved = false;
-    const clickThreshold = 5;
     let start = { x: 0, y: 0 };
+    const clickThreshold = 5;
 
-    // ===== CURSOR HANDLING & DRAG CANCEL =====
     canvas.classList.add('custom-cursor');
     canvas.addEventListener('pointerdown', () => canvas.classList.add('drag-mode'));
     canvas.addEventListener('pointerup', () => canvas.classList.remove('drag-mode'));
@@ -43,7 +38,7 @@ export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerC
       canvas.classList.add('cursor-click');
       setTimeout(() => canvas.classList.remove('cursor-click'), 150);
     });
-    // Cancel drag if pointer leaves canvas/UI overlay
+
     const cancelDrag = () => {
       if (isDragging) {
         isDragging = false;
@@ -51,36 +46,30 @@ export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerC
         document.body.classList.remove('dragging');
       }
     };
+
     canvas.addEventListener('pointerleave', cancelDrag);
     canvas.addEventListener('pointercancel', cancelDrag);
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) cancelDrag();
     });
-    // ============================
 
-    // World container
     const world = new PIXI.Container();
     world.eventMode = 'static';
     world.hitArea = app.screen;
     app.stage.addChild(world);
 
-    // Camera container
     const camera = new PIXI.Container();
     camera.sortableChildren = true;
     world.addChild(camera);
     cameraRef.current = camera;
 
-    // Clamp function
     const clampCamera = () => {
       const cam = cameraRef.current;
       if (!cam) return;
-      const scale = cam.scale.x;
-      const { width, height } = mapConfig;
-      cam.x = clamp(cam.x, window.innerWidth - width * scale, 0);
-      cam.y = clamp(cam.y, window.innerHeight - height * scale, 0);
+      clampCameraToMap(cam, mapConfig.width, mapConfig.height, window.innerWidth, window.innerHeight);
     };
+    
 
-    // Resize handler
     const handleResize = debounce(() => {
       const cam = cameraRef.current;
       if (!cam) return;
@@ -90,10 +79,10 @@ export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerC
       clampCamera();
       app.renderer.resize(window.innerWidth, window.innerHeight);
     }, 100);
+
     window.addEventListener('resize', handleResize);
     window.addEventListener('pixi-ready', handleResize);
 
-    // Load background
     (async () => {
       try {
         const texture = await PIXI.Assets.load(mapConfig.backgroundUrl);
@@ -102,18 +91,11 @@ export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerC
         bg.zIndex = -100;
         cameraRef.current?.addChild(bg);
         window.dispatchEvent(new Event('pixi-ready'));
-        setTimeout(() => {
-          if (!window._pixiReadyDispatched) {
-            window.dispatchEvent(new Event('pixi-ready'))
-            window._pixiReadyDispatched = true
-          }          
-        }, 3000)        
       } catch (err) {
         console.error('[PIXI] background load error', err);
       }
     })();
 
-    // Load emotes
     load7TVEmotes();
 
     // Pan controls with cancel handlers

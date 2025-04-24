@@ -11,20 +11,21 @@ import { mapConfig } from '../constants/mapConfig';
  * @param {import('socket.io-client').Socket} params.socket
  * @param {PIXI.Application} params.app
  * @param {object} params.playersRef - Ref React stockant les joueurs locaux
- * @param {PIXI.Container} params.stage
+ * @param {PIXI.Container} params.stage - correspond à cameraRef.current
  * @param {object} params.user - Infos utilisateur (username, avatar, etc.)
  * @param {function(number):void} params.setPlayerCount
  * @param {function(number):void} params.updateMyXP
  */
 export function setupSocketHandlers({ socket, app, playersRef, stage, user, setPlayerCount, updateMyXP }) {
-  // Handler mise à jour des joueurs PIXI
   function handlePlayerUpdate(serverPlayers) {
     if (!socket.id) return;
     const liveLevels = {};
     const myKey = user.username.toLowerCase();
+
     if (playersRef.current[myKey]) {
       liveLevels[myKey] = playersRef.current[myKey].level;
     }
+
     createOrUpdatePlayers(
       serverPlayers,
       playersRef.current,
@@ -33,7 +34,23 @@ export function setupSocketHandlers({ socket, app, playersRef, stage, user, setP
       liveLevels,
       app.stage.scale.x || 1
     );
+
     setPlayerCount(Object.keys(serverPlayers).length);
+
+    // 🎯 ZOOM AUTO au spawn (avec délai pour laisser le temps à la position d'être prête)
+    setTimeout(() => {
+      const me = playersRef.current[myKey];
+      const cam = stage; // cameraRef.current
+      if (!me || !cam) return;
+
+      const targetZoom = 0.7; // 👈 moins fort
+      const verticalOffset = window.innerHeight * 0.4; // 8% de la hauteur
+      
+      cam.scale.set(targetZoom);
+      cam.x = window.innerWidth / 2 - me.container.x * targetZoom;
+      cam.y = window.innerHeight / 2 - me.container.y * targetZoom + verticalOffset;
+      ;
+    }, 200);
   }
 
   // === RECONNEXION AUTOMATIQUE ===
@@ -49,7 +66,6 @@ export function setupSocketHandlers({ socket, app, playersRef, stage, user, setP
   });
 
   window.addEventListener('pixi-ready', () => {
-    // === SYNC JOUEURS & CHAT ===
     socket.off('update-players', handlePlayerUpdate);
     socket.on('update-players', handlePlayerUpdate);
 
@@ -72,7 +88,6 @@ export function setupSocketHandlers({ socket, app, playersRef, stage, user, setP
       }
     });
 
-    // === EVENTS DE JEU ===
     socket.off('challenge-request');
     socket.on('challenge-request', ({ challenger, game }) => {
       window.dispatchEvent(
@@ -80,7 +95,6 @@ export function setupSocketHandlers({ socket, app, playersRef, stage, user, setP
       );
     });
 
-    // Morpion
     socket.off('morpion-start');
     socket.on('morpion-start', (detail) =>
       window.dispatchEvent(new CustomEvent('morpion-start', { detail }))
@@ -106,7 +120,6 @@ export function setupSocketHandlers({ socket, app, playersRef, stage, user, setP
       window.dispatchEvent(new CustomEvent('morpion-close', { detail }))
     );
 
-    // Puissance4
     socket.off('puissance4-start');
     socket.on('puissance4-start', (detail) =>
       window.dispatchEvent(new CustomEvent('puissance4-start', { detail }))
@@ -132,7 +145,6 @@ export function setupSocketHandlers({ socket, app, playersRef, stage, user, setP
       window.dispatchEvent(new CustomEvent('puissance4-close', { detail }))
     );
 
-    // Typing Race
     socket.off('typingRace-start');
     socket.on('typingRace-start', (detail) =>
       window.dispatchEvent(new CustomEvent('typingRace-start', { detail }))

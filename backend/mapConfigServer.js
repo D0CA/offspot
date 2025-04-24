@@ -1,7 +1,7 @@
 module.exports = {
     walkableArea: {
-      minX: 10,
-      maxX: 3062,
+      minX: 300,
+      maxX: 3350,
       minY: 1300,
       maxY: 1720,
     },

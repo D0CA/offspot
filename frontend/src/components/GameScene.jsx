@@ -106,9 +106,17 @@ export default function GameScene() {
       <LoadingScreen loading={loading} />
 
       <div
-        ref={pixiContainer}
-        style={{ width: '100vw', height: '100vh', position: 'absolute', top: 0, left: 0, zIndex: 2 }}
-      />
+      ref={pixiContainer}
+      style={{
+        width: '100vw',
+        height: '100vh',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        zIndex: 2,
+        backgroundColor: 'black' // 👈 Ajouté ici
+      }}
+    />
 
       <GameUI
         key={`ui-${myXP}-${myLevel}`}
