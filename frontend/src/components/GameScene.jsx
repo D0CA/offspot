@@ -114,7 +114,6 @@ export default function GameScene() {
         top: 0,
         left: 0,
         zIndex: 2,
-        backgroundColor: 'black' // 👈 Ajouté ici
       }}
     />
 
