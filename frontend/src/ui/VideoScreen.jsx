@@ -9,24 +9,21 @@ export default function VideoScreen({ cameraRef }) {
   const [player,   setPlayer]   = useState(null)
   const iframeRef = useRef(null)
 
-  // Sync state
   const [serverVideoStartTime, setServerVideoStartTime] = useState(0)
-  const [clockOffset,           setClockOffset]           = useState(0)
+  const [clockOffset, setClockOffset] = useState(0)
 
-  // 🎯 Positionnement dynamique du lecteur vidéo (dans le trou exact)
   const [style, setStyle] = useState({})
   useEffect(() => {
-    function updateStyle() {
+    let frame;
+    const updateStyle = () => {
       if (!cameraRef.current) return
 
       const scale = cameraRef.current.scale.x || 1
-      // On remonte un peu le y pour corriger l'alignement
       const screenPos = cameraRef.current.toGlobal({ x: 1315, y: 700 })
-
       const videoWidth  = (2200 - 1315) * scale
       const videoHeight = (1350 - 910) * scale
 
-      setStyle({
+      const nextStyle = {
         position:      'absolute',
         top:           `${screenPos.y}px`,
         left:          `${screenPos.x}px`,
@@ -35,16 +32,20 @@ export default function VideoScreen({ cameraRef }) {
         zIndex:        0,
         pointerEvents: 'none',
         overflow:      'hidden',
-      })
+        willChange:    'transform',
+      }
+
+      setStyle(prev => JSON.stringify(prev) === JSON.stringify(nextStyle) ? prev : nextStyle)
+
+      frame = requestAnimationFrame(updateStyle)
     }
 
-    const iv = setInterval(updateStyle, 16)
+    frame = requestAnimationFrame(updateStyle)
     window.addEventListener('resize', updateStyle)
     window.addEventListener('pixi-ready', updateStyle)
-    updateStyle()
 
     return () => {
-      clearInterval(iv)
+      cancelAnimationFrame(frame)
       window.removeEventListener('resize', updateStyle)
       window.removeEventListener('pixi-ready', updateStyle)
     }
@@ -54,9 +55,8 @@ export default function VideoScreen({ cameraRef }) {
     if (iframeRef.current) {
       iframeRef.current.style.pointerEvents = 'none';
     }
-  }, [style]);  
+  }, [style]);
 
-  // 📡 Socket : sync + play/clear
   useEffect(() => {
     const s = socket.current
     if (!s) return
@@ -73,13 +73,17 @@ export default function VideoScreen({ cameraRef }) {
       setServerVideoStartTime(serverVideoStartTime)
 
       if (player && typeof player.seekTo === 'function') {
-        const seekPos = (correctedServerTime - serverVideoStartTime) / 1000
-        player.seekTo(seekPos, true)
+        const expected = (correctedServerTime - serverVideoStartTime) / 1000
+        const actual = typeof player.getCurrentTime === 'function' ? player.getCurrentTime() : 0
+        const drift = Math.abs(actual - expected)
+        if (drift > 0.8) {
+          player.seekTo(expected, true)
+        }
       }
     }
     s.on('video-sync-response', handleSync)
 
-    const handlePlay = ({ url, startTime }) => {
+    const handlePlay = ({ url }) => {
       const match = url.match(/(?:v=|youtu\.be\/)([\w-]{11})/)
       if (!match) return
       const videoId = match[1]
@@ -91,9 +95,11 @@ export default function VideoScreen({ cameraRef }) {
 
       if (syncInterval) clearInterval(syncInterval)
       syncInterval = setInterval(() => {
-        const t = Date.now()
-        s.emit('video-sync-request', { clientSendTime: t })
-      }, 10_000)
+        if (!document.hidden) {
+          const t = Date.now()
+          s.emit('video-sync-request', { clientSendTime: t })
+        }
+      }, 30000)
     }
 
     const handleClear = () => {
