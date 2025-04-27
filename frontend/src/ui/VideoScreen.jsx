@@ -121,28 +121,14 @@ export default function VideoScreen({ cameraRef }) {
     };
   }, [socket.current, player]);
 
-  // Fade in volume (doucement)
-  const fadeInVolume = (player) => {
-    if (!player || typeof player.setVolume !== 'function') return;
-    let volume = 0;
-    const targetVolume = 50;
-    const interval = setInterval(() => {
-      if (volume >= targetVolume) {
-        clearInterval(interval);
-        return;
-      }
-      volume += 5;
-      player.setVolume(volume);
-    }, 100);
-  };
-
   // Gestion retour d'onglet
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && player) {
         player.unMute();
-        fadeInVolume(player);
-      }
+        const savedVolume = parseInt(localStorage.getItem('preferredVolume'), 10) || 50;
+        player.setVolume(savedVolume);
+      }      
       socket.current?.emit('get-current-video');
     };
 
@@ -161,11 +147,12 @@ export default function VideoScreen({ cameraRef }) {
 
       const tryUnmute = () => {
         event.target.unMute();
-        fadeInVolume(event.target);
+        const savedVolume = parseInt(localStorage.getItem('preferredVolume'), 10) || 50;
+        event.target.setVolume(savedVolume);
         window.removeEventListener('click', tryUnmute);
         window.removeEventListener('keydown', tryUnmute);
         window.removeEventListener('touchstart', tryUnmute);
-      };
+      };   
 
       if (document.visibilityState === 'visible') {
         window.addEventListener('click', tryUnmute, { once: true });
