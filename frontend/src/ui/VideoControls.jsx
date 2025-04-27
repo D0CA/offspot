@@ -15,12 +15,16 @@ export default function VideoControls({ player }) {
   });
   const [queue, setQueue] = useState([]);
   const [isCooldown, setIsCooldown] = useState(false);
+  const [skipUsed, setSkipUsed] = useState(false); // 🆕 nouvel état pour empêcher spam skip
 
   // Récupère la playlist
   useEffect(() => {
     const s = socket.current;
     if (!s) return;
-    const handleQueue = (q) => setQueue(q);
+    const handleQueue = (q) => {
+      setQueue(q);
+      setSkipUsed(false); // 🆕 reset skip à la nouvelle vidéo
+    };
     s.on('video-queue', handleQueue);
     s.emit('get-video-queue');
     return () => s.off('video-queue', handleQueue);
@@ -73,6 +77,12 @@ export default function VideoControls({ player }) {
     }
   };
 
+  const handleSkip = () => {
+    if (!socket.current || skipUsed) return;
+    socket.current.emit('skip-video');
+    setSkipUsed(true); // 🆕 désactive le bouton après skip
+  };
+
   return (
     <div className={`video-controls ${open ? 'open' : 'closed'}`}>
       <button
@@ -107,8 +117,8 @@ export default function VideoControls({ player }) {
           {/* Skip */}
           <button
             className="skip-btn"
-            onClick={() => socket.current?.emit('skip-video')}
-            disabled={!player}
+            onClick={handleSkip}
+            disabled={!player || skipUsed}
           >
             ⏭ Skip
           </button>

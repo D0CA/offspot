@@ -184,6 +184,8 @@ io.on('connection', (socket) => {
     usernameToSocketId[key] = socket.id
 
     socket.emit('player-data', playerData)
+    // Annonce aux autres qu'un nouveau joueur a rejoint
+    socket.broadcast.emit('player-joined', { username });
 
     setTimeout(() => {
       socket.emit('update-players', players)

@@ -97,6 +97,12 @@ export function setupSocketHandlers({ socket, app, playersRef, stage, user, setP
       }
     });
 
+    socket.off('player-joined');
+    socket.on('player-joined', ({ username }) => {
+      if (!username) return;
+      window.dispatchEvent(new CustomEvent('player-join-toast', { detail: { username } }));
+    });    
+
     socket.off('challenge-request');
     socket.on('challenge-request', ({ challenger, game }) => {
       window.dispatchEvent(

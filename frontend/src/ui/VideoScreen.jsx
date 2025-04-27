@@ -13,16 +13,15 @@ export default function VideoScreen({ cameraRef }) {
   const [clockOffset, setClockOffset] = useState(0);
   const [style, setStyle] = useState({});
 
+  // Mise à jour dynamique de la position de l'iframe
   useEffect(() => {
     let frame;
     const updateStyle = () => {
       if (!cameraRef.current) return;
-
       const scale = cameraRef.current.scale.x || 1;
       const screenPos = cameraRef.current.toGlobal({ x: 1315, y: 700 });
       const videoWidth = (2200 - 1315) * scale;
       const videoHeight = (1350 - 910) * scale;
-
       const nextStyle = {
         position: 'absolute',
         top: `${screenPos.y}px`,
@@ -34,9 +33,7 @@ export default function VideoScreen({ cameraRef }) {
         overflow: 'hidden',
         willChange: 'transform',
       };
-
       setStyle(prev => JSON.stringify(prev) === JSON.stringify(nextStyle) ? prev : nextStyle);
-
       frame = requestAnimationFrame(updateStyle);
     };
 
@@ -51,6 +48,7 @@ export default function VideoScreen({ cameraRef }) {
     };
   }, [cameraRef]);
 
+  // Force pointer-events: none sur iframe YouTube
   useEffect(() => {
     const forceIframePassive = () => {
       if (iframeRef.current) {
@@ -58,14 +56,14 @@ export default function VideoScreen({ cameraRef }) {
       }
     };
     forceIframePassive();
-    const interval = setInterval(forceIframePassive, 1000); 
+    const interval = setInterval(forceIframePassive, 1000);
     return () => clearInterval(interval);
   }, []);
 
+  // Synchronisation vidéo socket
   useEffect(() => {
     const s = socket.current;
     if (!s) return;
-
     let syncInterval = null;
 
     function handleSync({ clientSendTime, serverTime, serverVideoStartTime }) {
@@ -73,10 +71,8 @@ export default function VideoScreen({ cameraRef }) {
       const rtt = t1 - clientSendTime;
       const oneWay = rtt / 2;
       const correctedServerTime = serverTime + oneWay;
-
       setClockOffset(Date.now() - correctedServerTime);
       setServerVideoStartTime(serverVideoStartTime);
-
       if (player && typeof player.seekTo === 'function') {
         const expected = (correctedServerTime - serverVideoStartTime) / 1000;
         const actual = typeof player.getCurrentTime === 'function' ? player.getCurrentTime() : 0;
@@ -93,12 +89,9 @@ export default function VideoScreen({ cameraRef }) {
       const match = url.match(/(?:v=|youtu\.be\/)([\w-]{11})/);
       if (!match) return;
       const videoId = match[1];
-
       setEmbedSrc(`https://www.youtube.com/embed/${videoId}?autoplay=1&controls=0&modestbranding=1&playsinline=1&rel=0&disablekb=1&fs=0&enablejsapi=1&origin=${window.location.origin}`);
-
       const t0 = Date.now();
       s.emit('video-sync-request', { clientSendTime: t0 });
-
       if (syncInterval) clearInterval(syncInterval);
       syncInterval = setInterval(() => {
         if (!document.hidden) {
@@ -128,20 +121,36 @@ export default function VideoScreen({ cameraRef }) {
     };
   }, [socket.current, player]);
 
+  // Fade in volume (doucement)
+  const fadeInVolume = (player) => {
+    if (!player || typeof player.setVolume !== 'function') return;
+    let volume = 0;
+    const targetVolume = 50;
+    const interval = setInterval(() => {
+      if (volume >= targetVolume) {
+        clearInterval(interval);
+        return;
+      }
+      volume += 5;
+      player.setVolume(volume);
+    }, 100);
+  };
+
+  // Gestion retour d'onglet
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        socket.current?.emit('get-current-video');
+      if (document.visibilityState === 'visible' && player) {
+        player.unMute();
+        fadeInVolume(player);
       }
+      socket.current?.emit('get-current-video');
     };
 
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [socket, player]);
 
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [socket]);
-
+  // Chargement et création du player YouTube
   useEffect(() => {
     if (!embedSrc || !iframeRef.current) return;
 
@@ -149,7 +158,22 @@ export default function VideoScreen({ cameraRef }) {
       event.target.mute();
       event.target.playVideo();
       setPlayer(event.target);
+
+      const tryUnmute = () => {
+        event.target.unMute();
+        fadeInVolume(event.target);
+        window.removeEventListener('click', tryUnmute);
+        window.removeEventListener('keydown', tryUnmute);
+        window.removeEventListener('touchstart', tryUnmute);
+      };
+
+      if (document.visibilityState === 'visible') {
+        window.addEventListener('click', tryUnmute, { once: true });
+        window.addEventListener('keydown', tryUnmute, { once: true });
+        window.addEventListener('touchstart', tryUnmute, { once: true });
+      }
     };
+
     const onStateChange = (e) => {
       if (e.data === window.YT.PlayerState.ENDED) {
         socket.current?.emit('skip-video');
