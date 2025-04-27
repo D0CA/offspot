@@ -74,11 +74,10 @@ export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerC
       const cam = cameraRef.current;
       if (!cam) return;
       const { width, height } = mapConfig;
-      const scale = Math.min(window.innerWidth / width, window.innerHeight / height) * 1.2;
-      cam.scale.set(scale);
       clampCamera();
       app.renderer.resize(window.innerWidth, window.innerHeight);
     }, 100);
+    
 
     window.addEventListener('resize', handleResize);
     window.addEventListener('pixi-ready', handleResize);
@@ -193,6 +192,22 @@ export function usePixiGame(mapConfig, SPEED, user, socket, localRef, setPlayerC
 
     // Socket handlers
     setupSocketHandlers({ socket: socket.current, app, playersRef: localRef, stage: cameraRef.current, user, setPlayerCount, updateMyXP });
+
+
+    const ensureCanvasActive = () => {
+      if (canvas) {
+        canvas.style.pointerEvents = 'auto';
+        canvas.tabIndex = -1;
+        canvas.style.outline = 'none';
+        canvas.focus();
+      }
+    };
+    
+    window.addEventListener('focus', () => setTimeout(ensureCanvasActive, 50));
+    window.addEventListener('resize', () => setTimeout(ensureCanvasActive, 50));
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) setTimeout(ensureCanvasActive, 50);
+    });    
 
     // Empêche la perte d'interaction au retour d'onglet + contourne iframe
     window.addEventListener('focus', () => {

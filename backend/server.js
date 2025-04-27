@@ -93,6 +93,7 @@ function playNextVideo() {
 
 io.on('connection', (socket) => {
   console.log('✅ Connecté:', socket.id)
+  
   socket.on('recover-session', ({ username }) => {
     const key = username.toLowerCase();
     // Mettre à jour les mappages
@@ -190,7 +191,11 @@ io.on('connection', (socket) => {
     }, 100)
 
     console.log(`[✅] Connexion de ${username} (${id})`)
-  })
+  });
+  
+  socket.on('request-players', () => {
+    socket.emit('update-players', players);
+  });  
 
   socket.on('move', ({ x, y }) => {
     const key = socketIdToUsername[socket.id]
@@ -199,7 +204,7 @@ io.on('connection', (socket) => {
       players[key].y = y
       socket.broadcast.emit('update-players', players)
     }
-  })
+  });
 
   socket.on('submit-video', ({ url, username }) => {
     const isValidYouTubeUrl = (url) => {
@@ -216,15 +221,15 @@ io.on('connection', (socket) => {
     io.emit('video-queue', videoQueue)
 
     if (!currentVideo) playNextVideo()
-  })
+  });
 
   socket.on('get-video-queue', () => {
     socket.emit('video-queue', videoQueue)
-  })
+  });
 
   socket.on('skip-video', () => {
     playNextVideo()
-  })
+  });
 
   socket.on('get-current-video', () => {
     if (currentVideo && videoStartTime) {
@@ -233,7 +238,7 @@ io.on('connection', (socket) => {
         startTime: videoStartTime
       })
     }
-  })
+  });
 
   socket.on('video-sync-request', ({ clientSendTime }) => {
     socket.emit('video-sync-response', {
@@ -241,7 +246,7 @@ io.on('connection', (socket) => {
       serverTime: Date.now(),
       serverVideoStartTime: videoStartTime
     })
-  })
+  });
 
   socket.on('start-challenge', ({ type, targetUsername }) => {
     const challenger = socketIdToUsername[socket.id];
@@ -258,7 +263,7 @@ io.on('connection', (socket) => {
     if (toSocketId) {
       io.to(toSocketId).emit('puissance4-close', { from: socketIdToUsername[socket.id] })
     }
-  })
+  });
 
   socket.on('disconnect', () => {
     // 1) On prévient l’adversaire que le joueur a quitté

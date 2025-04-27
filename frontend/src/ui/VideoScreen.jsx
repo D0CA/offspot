@@ -52,10 +52,15 @@ export default function VideoScreen({ cameraRef }) {
   }, [cameraRef])
 
   useEffect(() => {
-    if (iframeRef.current) {
-      iframeRef.current.style.pointerEvents = 'none';
-    }
-  }, [style]);
+    const forceIframePassive = () => {
+      if (iframeRef.current) {
+        iframeRef.current.style.pointerEvents = 'none';
+      }
+    };
+    forceIframePassive();
+    const interval = setInterval(forceIframePassive, 1000); // Toutes les secondes on force
+    return () => clearInterval(interval);
+  }, []);  
 
   useEffect(() => {
     const s = socket.current

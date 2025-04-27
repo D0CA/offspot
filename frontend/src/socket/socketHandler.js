@@ -72,6 +72,8 @@ export function setupSocketHandlers({ socket, app, playersRef, stage, user, setP
     socket.off('player-data');
     socket.on('player-data', (data) => updateMyXP(data.xp || 0));
 
+    socket.emit('request-players');
+
     socket.off('chat-message');
     socket.on('chat-message', ({ username, message, totalXP, level }) => {
       const player = Object.values(playersRef.current).find(
