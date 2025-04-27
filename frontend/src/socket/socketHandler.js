@@ -17,6 +17,9 @@ import { mapConfig } from '../constants/mapConfig';
  * @param {function(number):void} params.updateMyXP
  */
 export function setupSocketHandlers({ socket, app, playersRef, stage, user, setPlayerCount, updateMyXP }) {
+  
+  let hasSpawned = false;
+
   function handlePlayerUpdate(serverPlayers) {
     if (!socket.id) return;
     const liveLevels = {};
@@ -37,19 +40,23 @@ export function setupSocketHandlers({ socket, app, playersRef, stage, user, setP
 
     setPlayerCount(Object.keys(serverPlayers).length);
 
-    // 🎯 ZOOM AUTO au spawn (avec délai pour laisser le temps à la position d'être prête)
+    // Zoom automatique uniquement au premier spawn
     setTimeout(() => {
+      if (hasSpawned) return; // ❗ On fait rien si déjà spawn une fois
+
       const me = playersRef.current[myKey];
       const cam = stage; // cameraRef.current
-      if (!me || !cam) return;
-
-      const targetZoom = 0.7; // 👈 moins fort
-      const verticalOffset = window.innerHeight * 0.4; // 8% de la hauteur
+      
+      if (!me || !cam) return; // Sécurité au cas où
+      
+      const targetZoom = 0.7; // Le zoom cible
+      const verticalOffset = window.innerHeight * 0.4; // Décalage vertical
       
       cam.scale.set(targetZoom);
       cam.x = window.innerWidth / 2 - me.container.x * targetZoom;
       cam.y = window.innerHeight / 2 - me.container.y * targetZoom + verticalOffset;
-      ;
+
+      hasSpawned = true; // ✅ Marquer que le zoom a été fait
     }, 200);
   }
 
